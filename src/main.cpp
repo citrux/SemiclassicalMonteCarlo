@@ -5,10 +5,10 @@ using namespace std;
 
 int main()
 {
-	// задаем параметры задачи
+	// Р·Р°РґР°РµРј РїР°СЂР°РјРµС‚СЂС‹ Р·Р°РґР°С‡Рё
 	Params params;
 	Graphic graphic;
-	int flag_count_or_load; // если 1, загружаем значения вероятностей из файлов, иначе - вычисляем	
+	int flag_count_or_load; // РµСЃР»Рё 1, Р·Р°РіСЂСѓР¶Р°РµРј Р·РЅР°С‡РµРЅРёСЏ РІРµСЂРѕСЏС‚РЅРѕСЃС‚РµР№ РёР· С„Р°Р№Р»РѕРІ, РёРЅР°С‡Рµ - РІС‹С‡РёСЃР»СЏРµРј	
 	set_init_params(&params);
 	char filename_params[] = "params.txt";
 	char fn[] = "filenames.txt";
@@ -23,24 +23,24 @@ int main()
 	double beta = params.beta;		
 	Result_one_point result_one_point;
 
-	// задаем массивы, хранящие значения вероятности
+	// Р·Р°РґР°РµРј РјР°СЃСЃРёРІС‹, С…СЂР°РЅСЏС‰РёРµ Р·РЅР°С‡РµРЅРёСЏ РІРµСЂРѕСЏС‚РЅРѕСЃС‚Рё
 	double* px_mas = new double[(params.Nx+1)*(params.Ny+1)];
 	double* py_mas = new double[(params.Nx+1)*(params.Ny+1)];
-	double* WerOpt = new double[(params.Nx+1)*(params.Ny+1)]; // массив значений вероятности рассеяния на оптических фононах
-	double* WerAc = new double[(params.Nx+1)*(params.Ny+1)]; // массив значений вероятности рассеяния на акустических фононах
+	double* WerOpt = new double[(params.Nx+1)*(params.Ny+1)]; // РјР°СЃСЃРёРІ Р·РЅР°С‡РµРЅРёР№ РІРµСЂРѕСЏС‚РЅРѕСЃС‚Рё СЂР°СЃСЃРµСЏРЅРёСЏ РЅР° РѕРїС‚РёС‡РµСЃРєРёС… С„РѕРЅРѕРЅР°С…
+	double* WerAc = new double[(params.Nx+1)*(params.Ny+1)]; // РјР°СЃСЃРёРІ Р·РЅР°С‡РµРЅРёР№ РІРµСЂРѕСЏС‚РЅРѕСЃС‚Рё СЂР°СЃСЃРµСЏРЅРёСЏ РЅР° Р°РєСѓСЃС‚РёС‡РµСЃРєРёС… С„РѕРЅРѕРЅР°С…
 	
-	// строим сетку
+	// СЃС‚СЂРѕРёРј СЃРµС‚РєСѓ
 	points_mas(px_mas, py_mas, &params);
 
        time_t ttt;
-	if(flag_count_or_load == 1) // если 1, загружаем вероятности из файла
+	if(flag_count_or_load == 1) // РµСЃР»Рё 1, Р·Р°РіСЂСѓР¶Р°РµРј РІРµСЂРѕСЏС‚РЅРѕСЃС‚Рё РёР· С„Р°Р№Р»Р°
 	{
 		cout << "Start loading... ";
 		array_from_file(filename_opt, px_mas, py_mas, WerOpt, params);
 		array_from_file(filename_ac, px_mas, py_mas, WerAc, params);
 		cout << "done" << endl;
 	}
-	else // иначе вычисляем вероятности
+	else // РёРЅР°С‡Рµ РІС‹С‡РёСЃР»СЏРµРј РІРµСЂРѕСЏС‚РЅРѕСЃС‚Рё
 	{	
 		cout << "Start calculations of scatt. prob. on optical phonons...";
 		ttt = time(NULL);
@@ -67,20 +67,20 @@ int main()
 		cout<<"done."<<endl<<" File name: " << filename_ac <<endl;
 	};
 	
-/* массивы, необходимые для построения графика зависимости постоянной  составляющей тока от одной из переменных */
+/* РјР°СЃСЃРёРІС‹, РЅРµРѕР±С…РѕРґРёРјС‹Рµ РґР»СЏ РїРѕСЃС‚СЂРѕРµРЅРёСЏ РіСЂР°С„РёРєР° Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РїРѕСЃС‚РѕСЏРЅРЅРѕР№  СЃРѕСЃС‚Р°РІР»СЏСЋС‰РµР№ С‚РѕРєР° РѕС‚ РѕРґРЅРѕР№ РёР· РїРµСЂРµРјРµРЅРЅС‹С… */
 
-	// массив значений переменной, в зависимости от которой строим график плотности тока
+	// РјР°СЃСЃРёРІ Р·РЅР°С‡РµРЅРёР№ РїРµСЂРµРјРµРЅРЅРѕР№, РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ РєРѕС‚РѕСЂРѕР№ СЃС‚СЂРѕРёРј РіСЂР°С„РёРє РїР»РѕС‚РЅРѕСЃС‚Рё С‚РѕРєР°
 	int var_mas_count = get_var_mas_count(graphic);
 	double *var_mas = new double[var_mas_count];
 	set_var_mas(graphic, var_mas_count, var_mas);
 	
-	double * result_value_mas_x = new double[var_mas_count]; // плотность тока jx, усредненная по времени и по ансамблю
-	double * result_value_mas_y = new double[var_mas_count]; // плотность тока jy, усредненная по времени и по ансамблю
-	double * std_values_mas_x = new double[var_mas_count];   // стандартная ошибка тока jx (по ансамблю)
-	double * std_values_mas_y = new double[var_mas_count];   // стандартная ошибка тока jy (по ансамблю)
-	double * result_av_time = new double[var_mas_count];     // среднее время свободного пробега (по ансамблю)
-	double * result_nOpt = new double[var_mas_count];        // среднее количество рассеяний на оптических фононах (по ансамблю)
-	double * result_nAc = new double[var_mas_count];         // среднее количество рассеяний на акустических фононах (по ансамблю)
+	double * result_value_mas_x = new double[var_mas_count]; // РїР»РѕС‚РЅРѕСЃС‚СЊ С‚РѕРєР° jx, СѓСЃСЂРµРґРЅРµРЅРЅР°СЏ РїРѕ РІСЂРµРјРµРЅРё Рё РїРѕ Р°РЅСЃР°РјР±Р»СЋ
+	double * result_value_mas_y = new double[var_mas_count]; // РїР»РѕС‚РЅРѕСЃС‚СЊ С‚РѕРєР° jy, СѓСЃСЂРµРґРЅРµРЅРЅР°СЏ РїРѕ РІСЂРµРјРµРЅРё Рё РїРѕ Р°РЅСЃР°РјР±Р»СЋ
+	double * std_values_mas_x = new double[var_mas_count];   // СЃС‚Р°РЅРґР°СЂС‚РЅР°СЏ РѕС€РёР±РєР° С‚РѕРєР° jx (РїРѕ Р°РЅСЃР°РјР±Р»СЋ)
+	double * std_values_mas_y = new double[var_mas_count];   // СЃС‚Р°РЅРґР°СЂС‚РЅР°СЏ РѕС€РёР±РєР° С‚РѕРєР° jy (РїРѕ Р°РЅСЃР°РјР±Р»СЋ)
+	double * result_av_time = new double[var_mas_count];     // СЃСЂРµРґРЅРµРµ РІСЂРµРјСЏ СЃРІРѕР±РѕРґРЅРѕРіРѕ РїСЂРѕР±РµРіР° (РїРѕ Р°РЅСЃР°РјР±Р»СЋ)
+	double * result_nOpt = new double[var_mas_count];        // СЃСЂРµРґРЅРµРµ РєРѕР»РёС‡РµСЃС‚РІРѕ СЂР°СЃСЃРµСЏРЅРёР№ РЅР° РѕРїС‚РёС‡РµСЃРєРёС… С„РѕРЅРѕРЅР°С… (РїРѕ Р°РЅСЃР°РјР±Р»СЋ)
+	double * result_nAc = new double[var_mas_count];         // СЃСЂРµРґРЅРµРµ РєРѕР»РёС‡РµСЃС‚РІРѕ СЂР°СЃСЃРµСЏРЅРёР№ РЅР° Р°РєСѓСЃС‚РёС‡РµСЃРєРёС… С„РѕРЅРѕРЅР°С… (РїРѕ Р°РЅСЃР°РјР±Р»СЋ)
 	for(int i = 0; i < var_mas_count; i++)
 	{
 		result_value_mas_x[i] = 0.0;
@@ -93,7 +93,7 @@ int main()
 	}
 /* ----------------------------------------------------------------------------------------------- */
 	time_t total_time = time(NULL), time_load  = time(NULL);
-	for(int i = 0; i < var_mas_count; i++) // для всех значений переменной, в зависимости от которой строим график
+	for(int i = 0; i < var_mas_count; i++) // РґР»СЏ РІСЃРµС… Р·РЅР°С‡РµРЅРёР№ РїРµСЂРµРјРµРЅРЅРѕР№, РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ РєРѕС‚РѕСЂРѕР№ СЃС‚СЂРѕРёРј РіСЂР°С„РёРє
 	{		
 		var_value_graphic(graphic.num_var, var_mas[i], &params);
 		result_one_point = one_graphic_point(&params, beta, px_mas, py_mas, WerOpt, WerAc, var_mas[i], filename_params_after);

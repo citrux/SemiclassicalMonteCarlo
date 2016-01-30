@@ -151,16 +151,16 @@ void __attribute__((target(mic:0))) jobKernel(
 
 	while (t < (*params).all_time)
 	{
-		vx = vx_fun(px, py, params); // вычисляем значения компонент скорости
+		vx = vx_fun(px, py, params); // РІС‹С‡РёСЃР»СЏРµРј Р·РЅР°С‡РµРЅРёСЏ РєРѕРјРїРѕРЅРµРЅС‚ СЃРєРѕСЂРѕСЃС‚Рё
 		vy = vy_fun(px, py, params);
 		
 
 		value_x += vx * (*params).dt;
 		value_y += vy * (*params).dt;
 
-		runge(px, py, t, params); // решаем уравнения движения
+		runge(px, py, t, params); // СЂРµС€Р°РµРј СѓСЂР°РІРЅРµРЅРёСЏ РґРІРёР¶РµРЅРёСЏ
 
-		/* приводим импульс к зоне */
+		/* РїСЂРёРІРѕРґРёРј РёРјРїСѓР»СЊСЃ Рє Р·РѕРЅРµ */
 		p.x = px;
 		p.y = py;
 		p = ToFirstBand(p, params);
@@ -170,7 +170,7 @@ void __attribute__((target(mic:0))) jobKernel(
 		py_log_local[t_num] = py;
 		t += (*params).dt;
         
-		// вычисляем вероятности перехода в результате рассеяния на акустических и оптических фононах
+		// РІС‹С‡РёСЃР»СЏРµРј РІРµСЂРѕСЏС‚РЅРѕСЃС‚Рё РїРµСЂРµС…РѕРґР° РІ СЂРµР·СѓР»СЊС‚Р°С‚Рµ СЂР°СЃСЃРµСЏРЅРёСЏ РЅР° Р°РєСѓСЃС‚РёС‡РµСЃРєРёС… Рё РѕРїС‚РёС‡РµСЃРєРёС… С„РѕРЅРѕРЅР°С…
 		wla = (*params).wla_max*getWer(p.x, p.y, px_mas, py_mas, res_ac, &params_ac);
 		wlo = (*params).wlo_max*getWer(p.x, p.y, px_mas, py_mas, res_opt, &params_opt);
 		
@@ -179,57 +179,57 @@ void __attribute__((target(mic:0))) jobKernel(
 
 		if(wsum > r)
 		{
-			n0++; // наращиваем счетчик общего числа рассеяний
+			n0++; // РЅР°СЂР°С‰РёРІР°РµРј СЃС‡РµС‚С‡РёРє РѕР±С‰РµРіРѕ С‡РёСЃР»Р° СЂР°СЃСЃРµСЏРЅРёР№
 			wsum = 0.0;
 			r = random_uniform(x1, y1, z1, w1);
 			if(wla > r * (wlo + wla))
 			{
-				nAc++; // наращиваем счетчик рассеяний на акустических фононах
+				nAc++; // РЅР°СЂР°С‰РёРІР°РµРј СЃС‡РµС‚С‡РёРє СЂР°СЃСЃРµСЏРЅРёР№ РЅР° Р°РєСѓСЃС‚РёС‡РµСЃРєРёС… С„РѕРЅРѕРЅР°С…
 				energy_value = energy_psi(sqrt(px*px+py*py),atan2(py,px),&params_ac);
 				flag = false;
 				iCount = 0;
 				while(!flag)
 				{
-					psi = 2 * M_PI * random_uniform(x1, y1, z1, w1);   // случайным образом разыгрываем фазу квазиимпульса
-					p_max = pmax(psi, &params_ac); // максимальное значение модуля квазиимпульса 
-															  // в направлении угла psi 				
+					psi = 2 * M_PI * random_uniform(x1, y1, z1, w1);   // СЃР»СѓС‡Р°Р№РЅС‹Рј РѕР±СЂР°Р·РѕРј СЂР°Р·С‹РіСЂС‹РІР°РµРј С„Р°Р·Сѓ РєРІР°Р·РёРёРјРїСѓР»СЊСЃР°
+					p_max = pmax(psi, &params_ac); // РјР°РєСЃРёРјР°Р»СЊРЅРѕРµ Р·РЅР°С‡РµРЅРёРµ РјРѕРґСѓР»СЏ РєРІР°Р·РёРёРјРїСѓР»СЊСЃР° 
+															  // РІ РЅР°РїСЂР°РІР»РµРЅРёРё СѓРіР»Р° psi 				
 					p1 = apply_Newton_psi_energy(psi, flag, energy_value, p_max, &params_ac);
-					// если p1 существует, то flag = true, и мы правильно подобрали угол рассеяния, поэтому выходим из цикла
+					// РµСЃР»Рё p1 СЃСѓС‰РµСЃС‚РІСѓРµС‚, С‚Рѕ flag = true, Рё РјС‹ РїСЂР°РІРёР»СЊРЅРѕ РїРѕРґРѕР±СЂР°Р»Рё СѓРіРѕР» СЂР°СЃСЃРµСЏРЅРёСЏ, РїРѕСЌС‚РѕРјСѓ РІС‹С…РѕРґРёРј РёР· С†РёРєР»Р°
 					
-					// если за 15 попыток не нашли решение, выходим из цикла
+					// РµСЃР»Рё Р·Р° 15 РїРѕРїС‹С‚РѕРє РЅРµ РЅР°С€Р»Рё СЂРµС€РµРЅРёРµ, РІС‹С…РѕРґРёРј РёР· С†РёРєР»Р°
 					if(!flag)
 						iCount++;
 					if(iCount > 15 && !flag)
 						flag = true;
 				}
-				px = p1*cos(psi); // вычисляем компоненты импульса
-				py = p1*sin(psi); // вычисляем компоненты импульса
+				px = p1*cos(psi); // РІС‹С‡РёСЃР»СЏРµРј РєРѕРјРїРѕРЅРµРЅС‚С‹ РёРјРїСѓР»СЊСЃР°
+				py = p1*sin(psi); // РІС‹С‡РёСЃР»СЏРµРј РєРѕРјРїРѕРЅРµРЅС‚С‹ РёРјРїСѓР»СЊСЃР°
 			}
 			else
 			{
 				if((wlo>0.0001)&& (energy_psi(sqrt(px*px+py*py),atan2(py,px),&params_opt)>=params_opt.beta))
 				{
-					nOpt++; // наращиваем счетчик рассеяний на оптических фононах
+					nOpt++; // РЅР°СЂР°С‰РёРІР°РµРј СЃС‡РµС‚С‡РёРє СЂР°СЃСЃРµСЏРЅРёР№ РЅР° РѕРїС‚РёС‡РµСЃРєРёС… С„РѕРЅРѕРЅР°С…
 					energy_value = energy_psi(sqrt(px*px+py*py),atan2(py,px),&params_opt)-params_opt.beta;
 					flag = false;
 					iCount = 0;
 
 					while(!flag)
 					{
-						psi = 2 * M_PI * random_uniform(x1, y1, z1, w1);   // случайным образом разыгрываем фазу квазиимпульса
-						p_max = pmax(psi, &params_opt); // максимальное значение модуля квазиимпульса 
-																  // в направлении угла psi 				
+						psi = 2 * M_PI * random_uniform(x1, y1, z1, w1);   // СЃР»СѓС‡Р°Р№РЅС‹Рј РѕР±СЂР°Р·РѕРј СЂР°Р·С‹РіСЂС‹РІР°РµРј С„Р°Р·Сѓ РєРІР°Р·РёРёРјРїСѓР»СЊСЃР°
+						p_max = pmax(psi, &params_opt); // РјР°РєСЃРёРјР°Р»СЊРЅРѕРµ Р·РЅР°С‡РµРЅРёРµ РјРѕРґСѓР»СЏ РєРІР°Р·РёРёРјРїСѓР»СЊСЃР° 
+																  // РІ РЅР°РїСЂР°РІР»РµРЅРёРё СѓРіР»Р° psi 				
 						p1 = apply_Newton_psi_energy(psi, flag, energy_value, p_max, &params_opt);
-						// если p1 существует, то flag = true, и мы правильно подобрали угол рассеяния, поэтому выходим из цикла
+						// РµСЃР»Рё p1 СЃСѓС‰РµСЃС‚РІСѓРµС‚, С‚Рѕ flag = true, Рё РјС‹ РїСЂР°РІРёР»СЊРЅРѕ РїРѕРґРѕР±СЂР°Р»Рё СѓРіРѕР» СЂР°СЃСЃРµСЏРЅРёСЏ, РїРѕСЌС‚РѕРјСѓ РІС‹С…РѕРґРёРј РёР· С†РёРєР»Р°
 						
-						// если за 15 попыток не нашли решение, выходим из цикла
+						// РµСЃР»Рё Р·Р° 15 РїРѕРїС‹С‚РѕРє РЅРµ РЅР°С€Р»Рё СЂРµС€РµРЅРёРµ, РІС‹С…РѕРґРёРј РёР· С†РёРєР»Р°
 						if(!flag)
 							iCount++;
 						if(iCount > 15 && !flag)
 							flag = true;
 					}
-					px = p1*cos(psi); // вычисляем компоненты импульса
-					py = p1*sin(psi); // вычисляем компоненты импульса
+					px = p1*cos(psi); // РІС‹С‡РёСЃР»СЏРµРј РєРѕРјРїРѕРЅРµРЅС‚С‹ РёРјРїСѓР»СЊСЃР°
+					py = p1*sin(psi); // РІС‹С‡РёСЃР»СЏРµРј РєРѕРјРїРѕРЅРµРЅС‚С‹ РёРјРїСѓР»СЊСЃР°
 				}				
 			}
 		}
@@ -251,18 +251,18 @@ void __attribute__((target(mic:0))) jobKernel(
 
 Result_one_point one_graphic_point(Params* params, double beta, double* px_mas, double* py_mas, double* WerOpt, double* WerAc, double var_value, char* filename_base)
 {
-	double* values_x = new double [(*params).n_part]; // плотность постоянного тока вдоль Ох (до усреднения по ансамблю)
-	double* values_y = new double [(*params).n_part]; // плотность постоянного тока вдоль Оу (до усреднения по ансамблю)
-	double*	av_time = new double [(*params).n_part];  // среднее время релаксации (до усреднения по ансамблю)
-	unsigned int* nOpt = new unsigned int[(*params).n_part]; // количество рассеяний на оптических фононах
-	unsigned int* nAc = new unsigned int[(*params).n_part];  // количество рассеяний на акустических фононах
+	double* values_x = new double [(*params).n_part]; // РїР»РѕС‚РЅРѕСЃС‚СЊ РїРѕСЃС‚РѕСЏРЅРЅРѕРіРѕ С‚РѕРєР° РІРґРѕР»СЊ РћС… (РґРѕ СѓСЃСЂРµРґРЅРµРЅРёСЏ РїРѕ Р°РЅСЃР°РјР±Р»СЋ)
+	double* values_y = new double [(*params).n_part]; // РїР»РѕС‚РЅРѕСЃС‚СЊ РїРѕСЃС‚РѕСЏРЅРЅРѕРіРѕ С‚РѕРєР° РІРґРѕР»СЊ РћСѓ (РґРѕ СѓСЃСЂРµРґРЅРµРЅРёСЏ РїРѕ Р°РЅСЃР°РјР±Р»СЋ)
+	double*	av_time = new double [(*params).n_part];  // СЃСЂРµРґРЅРµРµ РІСЂРµРјСЏ СЂРµР»Р°РєСЃР°С†РёРё (РґРѕ СѓСЃСЂРµРґРЅРµРЅРёСЏ РїРѕ Р°РЅСЃР°РјР±Р»СЋ)
+	unsigned int* nOpt = new unsigned int[(*params).n_part]; // РєРѕР»РёС‡РµСЃС‚РІРѕ СЂР°СЃСЃРµСЏРЅРёР№ РЅР° РѕРїС‚РёС‡РµСЃРєРёС… С„РѕРЅРѕРЅР°С…
+	unsigned int* nAc = new unsigned int[(*params).n_part];  // РєРѕР»РёС‡РµСЃС‚РІРѕ СЂР°СЃСЃРµСЏРЅРёР№ РЅР° Р°РєСѓСЃС‚РёС‡РµСЃРєРёС… С„РѕРЅРѕРЅР°С…
 		
-	//Массивы-логи
+	//РњР°СЃСЃРёРІС‹-Р»РѕРіРё
 	int num_logs = (int)((*params).all_time / ((*params).dt))+1;
 	double* px_log = new double[num_logs*((*params).n_part)];
 	double* py_log = new double[num_logs*((*params).n_part)];
 	
-	// Инициализируем генератор случайных чисел
+	// РРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РіРµРЅРµСЂР°С‚РѕСЂ СЃР»СѓС‡Р°Р№РЅС‹С… С‡РёСЃРµР»
 	srand(time(NULL));
 	unsigned int* seed = new unsigned int[(*params).n_part];
 	for(int j = 0; j < (*params).n_part; j++)
@@ -270,7 +270,7 @@ Result_one_point one_graphic_point(Params* params, double beta, double* px_mas, 
 		seed[j] = ((unsigned int)rand()) % 100000000 + 100000000;
 	};
 	
-	// Запуск процесса моделирования на сопроцессоре Xeon Phi
+	// Р—Р°РїСѓСЃРє РїСЂРѕС†РµСЃСЃР° РјРѕРґРµР»РёСЂРѕРІР°РЅРёСЏ РЅР° СЃРѕРїСЂРѕС†РµСЃСЃРѕСЂРµ Xeon Phi
     #pragma offload target(mic:0) inout(values_x,values_y,av_time,nAc,nOpt:length((*params).n_part)) in(seed:length((*params).n_part)) in(px_mas, py_mas, WerAc, WerOpt:length(((*params).Nx + 1) * ((*params).Ny + 1)))  in(beta) in(params) in(num_logs) inout(px_log, py_log: length(((*params).n_part) * num_logs))
 	{
 		omp_set_num_threads((*params).num_threads_openmp);
@@ -294,12 +294,12 @@ Result_one_point one_graphic_point(Params* params, double beta, double* px_mas, 
 		};
 	};
 	
-	// Записываем значения компонент квазиимпульса в каждый момент времени для каждой частицы
+	// Р—Р°РїРёСЃС‹РІР°РµРј Р·РЅР°С‡РµРЅРёСЏ РєРѕРјРїРѕРЅРµРЅС‚ РєРІР°Р·РёРёРјРїСѓР»СЊСЃР° РІ РєР°Р¶РґС‹Р№ РјРѕРјРµРЅС‚ РІСЂРµРјРµРЅРё РґР»СЏ РєР°Р¶РґРѕР№ С‡Р°СЃС‚РёС†С‹
 	cout << "Writing logs for " << var_value << " .. ";
 	write_logs(filename_base, var_value, px_log, py_log, num_logs, *params);
 	cout << "done " << endl;
 	
-	// Помещаем результат расчета для одной точки графика в структуру
+	// РџРѕРјРµС‰Р°РµРј СЂРµР·СѓР»СЊС‚Р°С‚ СЂР°СЃС‡РµС‚Р° РґР»СЏ РѕРґРЅРѕР№ С‚РѕС‡РєРё РіСЂР°С„РёРєР° РІ СЃС‚СЂСѓРєС‚СѓСЂСѓ
 	Result_one_point result;
 	result.result_value_mas_x = Mean(values_x, (*params).n_part);
 	result.result_value_mas_y = Mean(values_y, (*params).n_part);
@@ -309,11 +309,11 @@ Result_one_point one_graphic_point(Params* params, double beta, double* px_mas, 
 	result.result_nOpt = Mean(nOpt,(*params).n_part);
 	result.result_nAc = Mean(nAc, (*params).n_part);
 	
-	// Удаляем массивы - логи
+	// РЈРґР°Р»СЏРµРј РјР°СЃСЃРёРІС‹ - Р»РѕРіРё
 	delete [] px_log;
 	delete [] py_log;
 	
-	// Удаляем массивы, хранящие значения скорости, среднего времени релаксации и т.д. до усреднения по ансамблю
+	// РЈРґР°Р»СЏРµРј РјР°СЃСЃРёРІС‹, С…СЂР°РЅСЏС‰РёРµ Р·РЅР°С‡РµРЅРёСЏ СЃРєРѕСЂРѕСЃС‚Рё, СЃСЂРµРґРЅРµРіРѕ РІСЂРµРјРµРЅРё СЂРµР»Р°РєСЃР°С†РёРё Рё С‚.Рґ. РґРѕ СѓСЃСЂРµРґРЅРµРЅРёСЏ РїРѕ Р°РЅСЃР°РјР±Р»СЋ
 	delete [] values_x;
 	delete [] values_y;
 	delete [] av_time;

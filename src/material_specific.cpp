@@ -1,7 +1,7 @@
 #include "material_specific.h"
 /* 
 	*
-	* Выражение для энергетического спектра (в декартовых координатах)
+	* Р’С‹СЂР°Р¶РµРЅРёРµ РґР»СЏ СЌРЅРµСЂРіРµС‚РёС‡РµСЃРєРѕРіРѕ СЃРїРµРєС‚СЂР° (РІ РґРµРєР°СЂС‚РѕРІС‹С… РєРѕРѕСЂРґРёРЅР°С‚Р°С…)
 	*
 */
 double __attribute__((target(mic:0))) energy(double px, double py, Params* params)
@@ -10,7 +10,7 @@ double __attribute__((target(mic:0))) energy(double px, double py, Params* param
 }
 /* 
 	*
-	* Выражение для энергетического спектра (в полярных координатах)
+	* Р’С‹СЂР°Р¶РµРЅРёРµ РґР»СЏ СЌРЅРµСЂРіРµС‚РёС‡РµСЃРєРѕРіРѕ СЃРїРµРєС‚СЂР° (РІ РїРѕР»СЏСЂРЅС‹С… РєРѕРѕСЂРґРёРЅР°С‚Р°С…)
 	*
 */
 double __attribute__((target(mic:0))) energy_psi(double p, double psi, Params* params)
@@ -20,7 +20,7 @@ double __attribute__((target(mic:0))) energy_psi(double p, double psi, Params* p
 
 /*
 	*
-	* Производная энергии по модулю импульса (в полярных координатах)
+	* РџСЂРѕРёР·РІРѕРґРЅР°СЏ СЌРЅРµСЂРіРёРё РїРѕ РјРѕРґСѓР»СЋ РёРјРїСѓР»СЊСЃР° (РІ РїРѕР»СЏСЂРЅС‹С… РєРѕРѕСЂРґРёРЅР°С‚Р°С…)
 	*
 */
 double __attribute__((target(mic:0))) d_energy_psi(double p, double psi, Params* params)
@@ -30,7 +30,7 @@ double __attribute__((target(mic:0))) d_energy_psi(double p, double psi, Params*
 
 /*
 	*
-	* Компоненты скорости
+	* РљРѕРјРїРѕРЅРµРЅС‚С‹ СЃРєРѕСЂРѕСЃС‚Рё
 	*
 */
 double __attribute__((target(mic:0))) vx_fun(double px, double py, Params* params)
@@ -45,7 +45,7 @@ double __attribute__((target(mic:0))) vy_fun(double px, double py, Params* param
 
 /*
 	*
-	* Правые части уравнений движения
+	* РџСЂР°РІС‹Рµ С‡Р°СЃС‚Рё СѓСЂР°РІРЅРµРЅРёР№ РґРІРёР¶РµРЅРёСЏ
 	*
 */
 
@@ -63,7 +63,7 @@ double __attribute__((target(mic:0))) right_y(double px, double py, double t, Pa
 
 /*
 	*
-	* Границы первой зоны Бриллюэна
+	* Р“СЂР°РЅРёС†С‹ РїРµСЂРІРѕР№ Р·РѕРЅС‹ Р‘СЂРёР»Р»СЋСЌРЅР°
 	*
 */
 double __attribute__((target(mic:0))) pmax(double psi, Params* params)
@@ -82,7 +82,7 @@ double __attribute__((target(mic:0))) pmax(double psi, Params* params)
 
 /*
 	*
-	* Функция, приводящая квазиимпульс к первой зоне Бриллюэна
+	* Р¤СѓРЅРєС†РёСЏ, РїСЂРёРІРѕРґСЏС‰Р°СЏ РєРІР°Р·РёРёРјРїСѓР»СЊСЃ Рє РїРµСЂРІРѕР№ Р·РѕРЅРµ Р‘СЂРёР»Р»СЋСЌРЅР°
 	*
 */
 Point __attribute__((target(mic:0))) ToFirstBand(Point p0, Params* params)
@@ -91,26 +91,26 @@ Point __attribute__((target(mic:0))) ToFirstBand(Point p0, Params* params)
 	double py = p0.y;
 	double p = sqrt(px*px + py*py);
 	double phi = atan2(py,px);
-	double OK = M_PI/sqrt(2.0); // орт e1 (модуль этого орта)
-	double OM = M_PI/sqrt(2.0); // орт e2 (модуль этого орта)
-	double OK1 = p*cos(phi - M_PI/4); // проецируем исходный радиус-вектор на орт е1 
-	double OM1 = p*sin(phi - M_PI/4); // проецируем исходный радиус-вектор на орт е2
-	double pxi = floor(OK1/OK); // целая часть от деления проекции исходного радиус-вектора
-								// на орт е1 на модуль этого вектора
-	double pyi = floor(OM1/OM); // целая часть от деления проекции исходного радиус-вектора
-								// на орт е2 на модуль этого вектора
-	double pxf = OK1 - pxi*OK;  // дробная часть от деления проекции исходного радиус-вектора
-								// на орт е1 на модуль этого вектора
-	double pyf = OM1 - pyi*OM;  // дробная часть от деления проекции исходного радиус-вектора
-								// на орт е1 на модуль этого вектора
+	double OK = M_PI/sqrt(2.0); // РѕСЂС‚ e1 (РјРѕРґСѓР»СЊ СЌС‚РѕРіРѕ РѕСЂС‚Р°)
+	double OM = M_PI/sqrt(2.0); // РѕСЂС‚ e2 (РјРѕРґСѓР»СЊ СЌС‚РѕРіРѕ РѕСЂС‚Р°)
+	double OK1 = p*cos(phi - M_PI/4); // РїСЂРѕРµС†РёСЂСѓРµРј РёСЃС…РѕРґРЅС‹Р№ СЂР°РґРёСѓСЃ-РІРµРєС‚РѕСЂ РЅР° РѕСЂС‚ Рµ1 
+	double OM1 = p*sin(phi - M_PI/4); // РїСЂРѕРµС†РёСЂСѓРµРј РёСЃС…РѕРґРЅС‹Р№ СЂР°РґРёСѓСЃ-РІРµРєС‚РѕСЂ РЅР° РѕСЂС‚ Рµ2
+	double pxi = floor(OK1/OK); // С†РµР»Р°СЏ С‡Р°СЃС‚СЊ РѕС‚ РґРµР»РµРЅРёСЏ РїСЂРѕРµРєС†РёРё РёСЃС…РѕРґРЅРѕРіРѕ СЂР°РґРёСѓСЃ-РІРµРєС‚РѕСЂР°
+								// РЅР° РѕСЂС‚ Рµ1 РЅР° РјРѕРґСѓР»СЊ СЌС‚РѕРіРѕ РІРµРєС‚РѕСЂР°
+	double pyi = floor(OM1/OM); // С†РµР»Р°СЏ С‡Р°СЃС‚СЊ РѕС‚ РґРµР»РµРЅРёСЏ РїСЂРѕРµРєС†РёРё РёСЃС…РѕРґРЅРѕРіРѕ СЂР°РґРёСѓСЃ-РІРµРєС‚РѕСЂР°
+								// РЅР° РѕСЂС‚ Рµ2 РЅР° РјРѕРґСѓР»СЊ СЌС‚РѕРіРѕ РІРµРєС‚РѕСЂР°
+	double pxf = OK1 - pxi*OK;  // РґСЂРѕР±РЅР°СЏ С‡Р°СЃС‚СЊ РѕС‚ РґРµР»РµРЅРёСЏ РїСЂРѕРµРєС†РёРё РёСЃС…РѕРґРЅРѕРіРѕ СЂР°РґРёСѓСЃ-РІРµРєС‚РѕСЂР°
+								// РЅР° РѕСЂС‚ Рµ1 РЅР° РјРѕРґСѓР»СЊ СЌС‚РѕРіРѕ РІРµРєС‚РѕСЂР°
+	double pyf = OM1 - pyi*OM;  // РґСЂРѕР±РЅР°СЏ С‡Р°СЃС‚СЊ РѕС‚ РґРµР»РµРЅРёСЏ РїСЂРѕРµРєС†РёРё РёСЃС…РѕРґРЅРѕРіРѕ СЂР°РґРёСѓСЃ-РІРµРєС‚РѕСЂР°
+								// РЅР° РѕСЂС‚ Рµ1 РЅР° РјРѕРґСѓР»СЊ СЌС‚РѕРіРѕ РІРµРєС‚РѕСЂР°
 
 	double pxN, pyN;
-	if(fabs(pxi-floor(pxi/2)*2)<0.000001) // если pxi - четная
+	if(fabs(pxi-floor(pxi/2)*2)<0.000001) // РµСЃР»Рё pxi - С‡РµС‚РЅР°СЏ
 		pxN = pxf;
 	else
 		pxN = -(OK - pxf);
 
-	if(fabs(pyi-floor(pyi/2)*2)<0.000001) // если pyi - четная
+	if(fabs(pyi-floor(pyi/2)*2)<0.000001) // РµСЃР»Рё pyi - С‡РµС‚РЅР°СЏ
 		pyN = pyf;
 	else
 		pyN = -(OM - pyf);
@@ -124,7 +124,7 @@ Point __attribute__((target(mic:0))) ToFirstBand(Point p0, Params* params)
 
 /*
 	*
-	* Возвращает точку с индексами (k,m)
+	* Р’РѕР·РІСЂР°С‰Р°РµС‚ С‚РѕС‡РєСѓ СЃ РёРЅРґРµРєСЃР°РјРё (k,m)
 	*
 */
 Point __attribute__((target(mic:0))) point_k_m(int k, int m, Params* params)
@@ -147,7 +147,7 @@ Point __attribute__((target(mic:0))) point_k_m(int k, int m, Params* params)
 
 /*
 	*
-	* Массив координат точек в импульсном пространстве
+	* РњР°СЃСЃРёРІ РєРѕРѕСЂРґРёРЅР°С‚ С‚РѕС‡РµРє РІ РёРјРїСѓР»СЊСЃРЅРѕРј РїСЂРѕСЃС‚СЂР°РЅСЃС‚РІРµ
 	*
 */
 void __attribute__((target(mic:0))) points_mas(double* px_mas, double* py_mas, Params* params)
