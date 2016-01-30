@@ -8,17 +8,12 @@ int main() {
     int flag_count_or_load; // если 1, загружаем значения вероятностей из
     // файлов, иначе - вычисляем
     set_init_params(&params);
-    char filename_params[] = "params.txt";
-    char fn[] = "filenames.txt";
+    string config = "config.ini";
+    string filename_params_after, filename_opt, filename_ac, filename_res;
 
-    char filename_params_after[] = "params_after_calculations.txt";
-    char filename_opt[] = "wopt.txt";
-    char filename_ac[] = "wac.txt";
-    char filename_res[] = "result.txt";
-
-    filename_from_file(fn, filename_params_after, filename_opt, filename_ac,
+    filename_from_file(config, filename_params_after, filename_opt, filename_ac,
                        filename_res);
-    params_from_file(filename_params, &params, &graphic, &flag_count_or_load);
+    params_from_file(config, &params, &graphic, &flag_count_or_load);
     double beta = params.beta;
     Result_one_point result_one_point;
 
@@ -38,7 +33,6 @@ int main() {
     // строим сетку
     points_mas(px_mas, py_mas, &params);
 
-    time_t ttt;
     if (flag_count_or_load == 1) // если 1, загружаем вероятности из файла
     {
         cout << "Start loading... ";
@@ -48,7 +42,7 @@ int main() {
     } else // иначе вычисляем вероятности
     {
         cout << "Start calculations of scatt. prob. on optical phonons...";
-        ttt = time(NULL);
+        time_t ttt = time(NULL);
         params.beta = beta;
         { full_probability_psi(px_mas, py_mas, WerOpt, &params); };
         cout << time(NULL) - ttt << endl;
@@ -131,6 +125,6 @@ int main() {
     results_to_file(filename_res, var_mas, var_mas_count, result_value_mas_x,
                     result_value_mas_y, std_values_mas_x, std_values_mas_y,
                     result_av_time, result_nOpt, result_nAc);
-    params_to_file(filename_params_after, filename_params, &params, &graphic,
-                   (int) total_time, flag_count_or_load);
+    // params_to_file(filename_params_after, filename_params, &params, &graphic,
+    //                (int) total_time, flag_count_or_load);
 }

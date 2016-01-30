@@ -36,4 +36,4 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
 Result_one_point one_graphic_point(Params * params, double beta,
                                    double * px_mas, double * py_mas,
                                    double * WerOpt, double * WerAc,
-                                   double var_value, char * filename_base);
+                                   double var_value, const string & filename_base);

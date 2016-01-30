@@ -131,6 +131,10 @@ double getWer(double px, double py, double * px_mas, double * py_mas,
     double M1y = (Dy - Ay) / (Dx - Ax) * (M1x - px) + py;
     double stepAD = (Dx - Ax) / Nx;
     int px_i_temp = (int) floor((K1x - Ax) / stepAD);
+
+    // !!! костыль !!!
+    if (px_i_temp < 0) px_i_temp = 0;
+
     double stepAB = (Bx - Ax) / Ny;
     int py_i_temp = (int) floor((M1x - Ax) / stepAB);
     // определяем вершины клеточки, внутрь которой попала наша точка

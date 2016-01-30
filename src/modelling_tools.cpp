@@ -258,7 +258,7 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
 Result_one_point one_graphic_point(Params * params, double beta,
                                    double * px_mas, double * py_mas,
                                    double * WerOpt, double * WerAc,
-                                   double var_value, char * filename_base) {
+                                   double var_value, const string & filename_base) {
     double * values_x = new double[(*params).n_part]; // плотность постоянного
     // тока вдоль Ох (до
     // усреднения по ансамблю)
@@ -300,9 +300,9 @@ Result_one_point one_graphic_point(Params * params, double beta,
 
     // Записываем значения компонент квазиимпульса в каждый момент времени для
     // каждой частицы
-    cout << "Writing logs for " << var_value << " .. ";
-    write_logs(filename_base, var_value, px_log, py_log, num_logs, *params);
-    cout << "done " << endl;
+    // cout << "Writing logs for " << var_value << " .. ";
+    // write_logs(filename_base, var_value, px_log, py_log, num_logs, *params);
+    // cout << "done " << endl;
 
     // Помещаем результат расчета для одной точки графика в структуру
     Result_one_point result;
