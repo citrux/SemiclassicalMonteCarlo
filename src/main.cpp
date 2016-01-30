@@ -1,6 +1,4 @@
-#pragma offload_attribute(push, target(mic))
 #include "modelling_tools.h"
-#pragma offload_attribute(pop)
 using namespace std;
 
 int main()
@@ -8,7 +6,7 @@ int main()
 	// задаем параметры задачи
 	Params params;
 	Graphic graphic;
-	int flag_count_or_load; // если 1, загружаем значения вероятностей из файлов, иначе - вычисляем	
+	int flag_count_or_load; // если 1, загружаем значения вероятностей из файлов, иначе - вычисляем
 	set_init_params(&params);
 	char filename_params[] = "params.txt";
 	char fn[] = "filenames.txt";
@@ -17,10 +15,10 @@ int main()
 	char filename_opt[] = "wopt.txt";
 	char filename_ac[] = "wac.txt";
 	char filename_res[] = "result.txt";
-	
+
 	filename_from_file(fn, filename_params_after, filename_opt, filename_ac, filename_res);
 	params_from_file(filename_params, &params, &graphic, &flag_count_or_load);
-	double beta = params.beta;		
+	double beta = params.beta;
 	Result_one_point result_one_point;
 
 	// задаем массивы, хранящие значения вероятности
@@ -28,7 +26,7 @@ int main()
 	double* py_mas = new double[(params.Nx+1)*(params.Ny+1)];
 	double* WerOpt = new double[(params.Nx+1)*(params.Ny+1)]; // массив значений вероятности рассеяния на оптических фононах
 	double* WerAc = new double[(params.Nx+1)*(params.Ny+1)]; // массив значений вероятности рассеяния на акустических фононах
-	
+
 	// строим сетку
 	points_mas(px_mas, py_mas, &params);
 
@@ -41,23 +39,21 @@ int main()
 		cout << "done" << endl;
 	}
 	else // иначе вычисляем вероятности
-	{	
+	{
 		cout << "Start calculations of scatt. prob. on optical phonons...";
 		ttt = time(NULL);
 		params.beta = beta;
-		#pragma offload target(mic:0) inout(WerOpt:length((params.Nx+1)*(params.Ny+1))) in(px_mas, py_mas: length((params.Nx+1)*(params.Ny+1))) in(params)
 		{
 			full_probability_psi(px_mas, py_mas, WerOpt, &params);
 		};
-		cout<<time(NULL)-ttt<<endl;	
+		cout<<time(NULL)-ttt<<endl;
 		cout << "Writing the scatt. prob. on optical phonons in text file ... ";
 		array_to_file(filename_opt, px_mas, py_mas, WerOpt, params);
 		cout<<"done."<<endl<<" File name: " << filename_opt <<endl;
-		
+
 		ttt = time(NULL);
 		cout << "Start calculations of scatt. prob. acoustical phonons...";
 		params.beta = 0;
-		#pragma offload target(mic:0) inout(WerAc:length((params.Nx+1)*(params.Ny+1))) in(px_mas, py_mas: length((params.Nx+1)*(params.Ny+1))) in(params)
 		{
 			full_probability_psi(px_mas, py_mas, WerAc, &params);
 		}
@@ -66,14 +62,14 @@ int main()
 		array_to_file(filename_ac, px_mas, py_mas, WerAc, params);
 		cout<<"done."<<endl<<" File name: " << filename_ac <<endl;
 	};
-	
+
 /* массивы, необходимые для построения графика зависимости постоянной  составляющей тока от одной из переменных */
 
 	// массив значений переменной, в зависимости от которой строим график плотности тока
 	int var_mas_count = get_var_mas_count(graphic);
 	double *var_mas = new double[var_mas_count];
 	set_var_mas(graphic, var_mas_count, var_mas);
-	
+
 	double * result_value_mas_x = new double[var_mas_count]; // плотность тока jx, усредненная по времени и по ансамблю
 	double * result_value_mas_y = new double[var_mas_count]; // плотность тока jy, усредненная по времени и по ансамблю
 	double * std_values_mas_x = new double[var_mas_count];   // стандартная ошибка тока jx (по ансамблю)
@@ -94,7 +90,7 @@ int main()
 /* ----------------------------------------------------------------------------------------------- */
 	time_t total_time = time(NULL), time_load  = time(NULL);
 	for(int i = 0; i < var_mas_count; i++) // для всех значений переменной, в зависимости от которой строим график
-	{		
+	{
 		var_value_graphic(graphic.num_var, var_mas[i], &params);
 		result_one_point = one_graphic_point(&params, beta, px_mas, py_mas, WerOpt, WerAc, var_mas[i], filename_params_after);
 		cout << time(NULL) - time_load << endl;
@@ -108,9 +104,9 @@ int main()
 		result_nAc[i] = result_one_point.result_nAc;
 	};
 	total_time = time(NULL) - total_time;
-	results_to_file(filename_res, 
+	results_to_file(filename_res,
 					var_mas, var_mas_count,
-					result_value_mas_x, result_value_mas_y, 
+					result_value_mas_x, result_value_mas_y,
 					std_values_mas_x, std_values_mas_y,
 					result_av_time,
 					result_nOpt, result_nAc

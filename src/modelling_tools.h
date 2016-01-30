@@ -2,7 +2,7 @@
 #include <limits.h>
 #include <stdio.h>
 
-struct __attribute__((target(mic:1))) Result_one_point
+struct  Result_one_point
 {
 	double result_value_mas_x;
 	double result_value_mas_y;
@@ -13,15 +13,15 @@ struct __attribute__((target(mic:1))) Result_one_point
 	double result_nAc;
 };
 
-double __attribute__((target(mic:1))) random_uniform(unsigned int& x1, unsigned int& y1, unsigned int& z1,  unsigned int& w1);
-void __attribute__((target(mic:1))) runge(double &px, double &py, double t, Params* params);
-Point __attribute__((target(mic:1))) init_dist(unsigned int& x1, unsigned int& y1, unsigned int& z1, unsigned int& w1, Params* params);
+double  random_uniform(unsigned int& x1, unsigned int& y1, unsigned int& z1,  unsigned int& w1);
+void  runge(double &px, double &py, double t, Params* params);
+Point  init_dist(unsigned int& x1, unsigned int& y1, unsigned int& z1, unsigned int& w1, Params* params);
 double Mean(double * arr, int count);
 double Mean(unsigned int * arr, int count);
 double Std(double * arr, int count);
 
 
-void __attribute__((target(mic:1))) jobKernel(double * dev_average_value_x,
+void  jobKernel(double * dev_average_value_x,
 			   double * dev_average_value_y,
 			   double * dev_average_time_array,
 			   unsigned int  * dev_nAc,

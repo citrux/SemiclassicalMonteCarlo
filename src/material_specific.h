@@ -5,7 +5,7 @@
 	* Структура, хранящая компоненты импульса
 	*
 */
-struct __attribute__((target(mic:0))) Point
+struct  Point
 {
 	double x;
 	double y;
@@ -15,7 +15,7 @@ struct __attribute__((target(mic:0))) Point
 	* Структура, хранящая параметры задачи
 	*
 */
-struct __attribute__((target(mic:0))) Params
+struct  Params
 {
 	double beta;    // отношение энергии оптического фонона к ширине минизоны
 	double wla_max; // константа электрон-фононного взаимодействия (акустические фононы)
@@ -105,60 +105,60 @@ void set_init_params(Params *params);
 	* Выражение для энергетического спектра (в декартовых координатах)
 	*
 */
-double __attribute__((target(mic:0))) energy(double px, double py, Params* params);
+double  energy(double px, double py, Params* params);
 /*
 	*
 	* Выражение для энергетического спектра (в полярных координатах)
 	*
 */
-double __attribute__((target(mic:0))) energy_psi(double p, double psi, Params* params);
+double  energy_psi(double p, double psi, Params* params);
 /*
 	*
 	* Производная энергии по модулю импульса (в полярных координатах)
 	*
 */
-double __attribute__((target(mic:0))) d_energy_psi(double p, double psi, Params* params);
+double  d_energy_psi(double p, double psi, Params* params);
 
 /*
 	*
 	* Компоненты скорости
 	*
 */
-double __attribute__((target(mic:0))) vx_fun(double px, double py, Params* params);
-double __attribute__((target(mic:0))) vy_fun(double px, double py, Params* params);
+double  vx_fun(double px, double py, Params* params);
+double  vy_fun(double px, double py, Params* params);
 
 /*
 	*
 	* Правые части уравнений движения
 	*
 */
-double __attribute__((target(mic:0))) right_x(double px, double py, double t, Params* params);
-double __attribute__((target(mic:0))) right_y(double px, double py, double t, Params* params);
+double  right_x(double px, double py, double t, Params* params);
+double  right_y(double px, double py, double t, Params* params);
 
 /*
 	*
 	* Границы первой зоны Бриллюэна
 	*
 */
-double __attribute__((target(mic:0))) pmax(double psi, Params* params);
+double  pmax(double psi, Params* params);
 
 /*
 	*
 	* Функция, приводящая квазиимпульс к первой зоне Бриллюэна
 	*
 */
-Point __attribute__((target(mic:0))) ToFirstBand(Point p0, Params* params);
+Point  ToFirstBand(Point p0, Params* params);
 
 /*
 	*
 	* Возвращает точку с индексами (k,m)
 	*
 */
-Point __attribute__((target(mic:0))) point_k_m(int k, int m, Params* params);
+Point  point_k_m(int k, int m, Params* params);
 
 /*
 	*
 	* Массив координат точек в импульсном пространстве
 	*
 */
-void __attribute__((target(mic:0))) points_mas(double* px_mas, double* py_mas, Params* params);
+void  points_mas(double* px_mas, double* py_mas, Params* params);

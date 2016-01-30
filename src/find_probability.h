@@ -6,7 +6,7 @@
 	* функции на границах рассматриваемого промежутка, если эти значения имеют разные знаки, то на промежутке есть корень)
 	*
 */
-bool __attribute__((target(mic:0))) sign2(double leftBound, double rightBound);
+bool  sign2(double leftBound, double rightBound);
 
 
 /* 
@@ -16,7 +16,7 @@ bool __attribute__((target(mic:0))) sign2(double leftBound, double rightBound);
 	* Используется для определения границ первой зоны Бриллюэна (при построении изоэнергетических поверхностей)
 	*
 */
-double __attribute__((target(mic:0))) Newton_psi_energy(double p1_low, double p1_high, double psi, double energy_value, Params* params);
+double  Newton_psi_energy(double p1_low, double p1_high, double psi, double energy_value, Params* params);
 
 /*
 	*
@@ -24,7 +24,7 @@ double __attribute__((target(mic:0))) Newton_psi_energy(double p1_low, double p1
 	* Используется для построения изоэнергетических поверхностей 
 	*
 */
-double __attribute__((target(mic:0))) apply_Newton_psi_energy(double psi, bool &flag, double energy_value, double pmax, Params* params);
+double  apply_Newton_psi_energy(double psi, bool &flag, double energy_value, double pmax, Params* params);
 
 
 /*  
@@ -39,31 +39,31 @@ double __attribute__((target(mic:0))) apply_Newton_psi_energy(double psi, bool &
 	* points - массив значений импульса - точек сетки
 	* Wer - массив значений вероятности, посчитанной на узлах выбранной сетки
 */
-double __attribute__((target(mic:0))) getWer(double px, double py, double* px_mas, double* py_mas, double *Wer, Params* params);
+double  getWer(double px, double py, double* px_mas, double* py_mas, double *Wer, Params* params);
 
 /*
 	*
 	* Выражение, интеграл от которого берется методом Симпсона
 	*
 */	
-double __attribute__((target(mic:0))) simpson_function(double psi, double px, double py, Params* params);
+double  simpson_function(double psi, double px, double py, Params* params);
 
 /*
 	*
 	* Реализация метода Симпсона
 	*
 */
-double  __attribute__((target(mic:0))) simpson(double px, double py, Params* params);
+double   simpson(double px, double py, Params* params);
 
 /*
 	*
 	* Собственно вычисление вероятности рассеяния
 	*
 */
-void __attribute__((target(mic:0))) full_probability_psi(double* px_mas, double *py_mas, double *res_mas, Params* params);
+void  full_probability_psi(double* px_mas, double *py_mas, double *res_mas, Params* params);
 
 
-double __attribute__((target(mic:0))) distrib_function(double p, double psi, Params* params);
+double  distrib_function(double p, double psi, Params* params);
 
 
 double A_norm(Params* params);

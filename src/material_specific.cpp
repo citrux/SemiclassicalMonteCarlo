@@ -4,7 +4,7 @@
 	* Выражение для энергетического спектра (в декартовых координатах)
 	*
 */
-double __attribute__((target(mic:0))) energy(double px, double py, Params* params)
+double  energy(double px, double py, Params* params)
 {
 	return (1-cos(px)*cos(py));
 }
@@ -13,7 +13,7 @@ double __attribute__((target(mic:0))) energy(double px, double py, Params* param
 	* Выражение для энергетического спектра (в полярных координатах)
 	*
 */
-double __attribute__((target(mic:0))) energy_psi(double p, double psi, Params* params)
+double  energy_psi(double p, double psi, Params* params)
 {
 	return (1-cos(p*cos(psi))*cos(p*sin(psi)));
 }
@@ -23,7 +23,7 @@ double __attribute__((target(mic:0))) energy_psi(double p, double psi, Params* p
 	* Производная энергии по модулю импульса (в полярных координатах)
 	*
 */
-double __attribute__((target(mic:0))) d_energy_psi(double p, double psi, Params* params)
+double  d_energy_psi(double p, double psi, Params* params)
 {
 	return (sin(p*cos(psi))*cos(psi)*cos(p*sin(psi))+cos(p*cos(psi))*sin(p*sin(psi))*sin(psi));
 }
@@ -33,12 +33,12 @@ double __attribute__((target(mic:0))) d_energy_psi(double p, double psi, Params*
 	* Компоненты скорости
 	*
 */
-double __attribute__((target(mic:0))) vx_fun(double px, double py, Params* params)
+double  vx_fun(double px, double py, Params* params)
 {
 	return (*params).vx0*sin(px)*cos(py);
 }
 
-double __attribute__((target(mic:0))) vy_fun(double px, double py, Params* params)
+double  vy_fun(double px, double py, Params* params)
 {
 	return (*params).vy0*cos(px)*sin(py);
 }
@@ -49,13 +49,13 @@ double __attribute__((target(mic:0))) vy_fun(double px, double py, Params* param
 	*
 */
 
-double __attribute__((target(mic:0))) right_x(double px, double py, double t, Params* params)
+double  right_x(double px, double py, double t, Params* params)
 {
 	//return ((*params).Exc + (*params).Ex*cos(t*(*params).wx)+(*params).H*vy_fun(px,py,params));
 	return (*params).Exc;
 }
 
-double __attribute__((target(mic:0))) right_y(double px, double py, double t, Params* params)
+double  right_y(double px, double py, double t, Params* params)
 {
 	//return ((*params).Eyc + (*params).Ey*cos(t*(*params).wy+(*params).phi) - (*params).H*vx_fun(px,py,params));
 	return (*params).Ey1*cos(t*(*params).wy1)+(*params).Ey2*cos(t*(*params).wy2+(*params).phi);
@@ -66,7 +66,7 @@ double __attribute__((target(mic:0))) right_y(double px, double py, double t, Pa
 	* Границы первой зоны Бриллюэна
 	*
 */
-double __attribute__((target(mic:0))) pmax(double psi, Params* params)
+double  pmax(double psi, Params* params)
 {
 	double res;
 	if((psi >= 0) && (psi < M_PI_2))
@@ -85,7 +85,7 @@ double __attribute__((target(mic:0))) pmax(double psi, Params* params)
 	* Функция, приводящая квазиимпульс к первой зоне Бриллюэна
 	*
 */
-Point __attribute__((target(mic:0))) ToFirstBand(Point p0, Params* params)
+Point  ToFirstBand(Point p0, Params* params)
 {
 	double px = p0.x;
 	double py = p0.y;
@@ -127,7 +127,7 @@ Point __attribute__((target(mic:0))) ToFirstBand(Point p0, Params* params)
 	* Возвращает точку с индексами (k,m)
 	*
 */
-Point __attribute__((target(mic:0))) point_k_m(int k, int m, Params* params)
+Point  point_k_m(int k, int m, Params* params)
 {
 	double Ax = (*params).Ax; double Ay = (*params).Ay;
 	double Bx = (*params).Bx; double By = (*params).By;
@@ -150,7 +150,7 @@ Point __attribute__((target(mic:0))) point_k_m(int k, int m, Params* params)
 	* Массив координат точек в импульсном пространстве
 	*
 */
-void __attribute__((target(mic:0))) points_mas(double* px_mas, double* py_mas, Params* params)
+void  points_mas(double* px_mas, double* py_mas, Params* params)
 {
 	
 	int Nx = (*params).Nx;

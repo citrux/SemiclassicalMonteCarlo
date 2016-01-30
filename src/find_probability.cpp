@@ -5,7 +5,7 @@
 	* функции на границах рассматриваемого промежутка, если эти значения имеют разные знаки, то на промежутке есть корень)
 	*
 */
-bool __attribute__((target(mic:0))) sign2(double leftBound, double rightBound)
+bool  sign2(double leftBound, double rightBound)
 {
 	if ((leftBound<0 && rightBound>0)||(leftBound>0 && rightBound<0))
 	{
@@ -28,7 +28,7 @@ bool __attribute__((target(mic:0))) sign2(double leftBound, double rightBound)
 	* Используется для определения границ первой зоны Бриллюэна (при построении изоэнергетических поверхностей)
 	*
 */
-double __attribute__((target(mic:0))) Newton_psi_energy(double p1_low, double p1_high, double psi, double energy_value, Params* params)
+double  Newton_psi_energy(double p1_low, double p1_high, double psi, double energy_value, Params* params)
 {
 	double pn, pn1;
 	bool usl1 = true;
@@ -67,7 +67,7 @@ double __attribute__((target(mic:0))) Newton_psi_energy(double p1_low, double p1
 	* Используется для построения изоэнергетических поверхностей 
 	*
 */
-double __attribute__((target(mic:0))) apply_Newton_psi_energy(double psi, bool &flag, double energy_value, double pmax, Params* params)
+double  apply_Newton_psi_energy(double psi, bool &flag, double energy_value, double pmax, Params* params)
 {
 	double tempres = 0;
 	// объявляем и заполняем массив значений p1, на котором будем искать решение 
@@ -111,7 +111,7 @@ L1:
 	* points - массив значений импульса - точек сетки
 	* Wer - массив значений вероятности, посчитанной на узлах выбранной сетки
 */
-double __attribute__((target(mic:0))) getWer(double px, double py, double* px_mas, double* py_mas, double *Wer, Params* params)
+double  getWer(double px, double py, double* px_mas, double* py_mas, double *Wer, Params* params)
 {
 	double Ax = (*params).Ax; double Ay = (*params).Ay;
 	double Bx = (*params).Bx; double By = (*params).By;
@@ -211,7 +211,7 @@ double __attribute__((target(mic:0))) getWer(double px, double py, double* px_ma
 	* Выражение, интеграл от которого берется методом Симпсона
 	*
 */	
-double __attribute__((target(mic:0))) simpson_function(double psi, double px, double py, Params* params)
+double  simpson_function(double psi, double px, double py, Params* params)
 {
 	bool flag = false;
 	double result = 0.0;
@@ -234,7 +234,7 @@ double __attribute__((target(mic:0))) simpson_function(double psi, double px, do
 	* Реализация метода Симпсона
 	*
 */
-double __attribute__((target(mic:0))) simpson(double px, double py, Params* params)
+double  simpson(double px, double py, Params* params)
 {
 	double result = 0.0,
 		   a = 0,
@@ -260,7 +260,7 @@ double __attribute__((target(mic:0))) simpson(double px, double py, Params* para
 	* Собственно вычисление вероятности рассеяния
 	*
 */
-void __attribute__((target(mic:0))) full_probability_psi(double* px_mas, double *py_mas, double *res_mas, Params* params)
+void  full_probability_psi(double* px_mas, double *py_mas, double *res_mas, Params* params)
 {
 	omp_set_num_threads((*params).num_threads_openmp);
 	#pragma omp parallel for
@@ -273,7 +273,7 @@ void __attribute__((target(mic:0))) full_probability_psi(double* px_mas, double 
 
 
 
-double __attribute__((target(mic:0))) distrib_function(double p, double psi, Params* params)
+double  distrib_function(double p, double psi, Params* params)
 {
 	return exp((-1.0/(*params).T) * energy_psi(p, psi, params))*p;
 }

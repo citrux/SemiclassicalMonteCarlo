@@ -1,6 +1,6 @@
 #include "modelling_tools.h"
 
-double __attribute__((target(mic:0))) random_uniform(unsigned int& x1, unsigned int& y1, unsigned int& z1,  unsigned int& w1)
+double  random_uniform(unsigned int& x1, unsigned int& y1, unsigned int& z1,  unsigned int& w1)
 {
 	unsigned int t1 = (x1 ^ (x1 << 11));
 	x1 = y1;
@@ -16,7 +16,7 @@ double __attribute__((target(mic:0))) random_uniform(unsigned int& x1, unsigned 
 	mas[idx] = random_uniform(x1, y1, z1, w1);
 }*/
 
-void __attribute__((target(mic:0))) runge(double &px, double &py, double t, Params* params)
+void  runge(double &px, double &py, double t, Params* params)
 {
 	double px_1 = px;
 	double py_1 = py;
@@ -35,7 +35,7 @@ void __attribute__((target(mic:0))) runge(double &px, double &py, double t, Para
 	py = py_1;
 }
 
-Point __attribute__((target(mic:0))) init_dist(unsigned int& x1, unsigned int& y1, unsigned int& z1, unsigned int& w1, Params* params)
+Point  init_dist(unsigned int& x1, unsigned int& y1, unsigned int& z1, unsigned int& w1, Params* params)
 {
 	double psi;
 	double p;
@@ -91,7 +91,7 @@ double Std(double * arr, int count)
 	return sqrt(sum / (count - 1));
 }
 
-void __attribute__((target(mic:0))) jobKernel(
+void  jobKernel(
 			   double * dev_average_value_x,
 			   double * dev_average_value_y,
 			   double * dev_average_time_array,
@@ -271,7 +271,6 @@ Result_one_point one_graphic_point(Params* params, double beta, double* px_mas, 
 	};
 	
 	// Запуск процесса моделирования на сопроцессоре Xeon Phi
-    #pragma offload target(mic:0) inout(values_x,values_y,av_time,nAc,nOpt:length((*params).n_part)) in(seed:length((*params).n_part)) in(px_mas, py_mas, WerAc, WerOpt:length(((*params).Nx + 1) * ((*params).Ny + 1)))  in(beta) in(params) in(num_logs) inout(px_log, py_log: length(((*params).n_part) * num_logs))
 	{
 		omp_set_num_threads((*params).num_threads_openmp);
 		#pragma omp parallel for
