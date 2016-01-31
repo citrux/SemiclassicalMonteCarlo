@@ -11,7 +11,7 @@ void array_to_file(const string & filename, double * px_mas, double * py_mas,
                    double * Wer, const Params & params);
 void write_logs(const string & filename_base, double var_value, double * px_log,
                 double * py_log, int num_logs, const Params & params);
-void results_to_file(const string & filename_res, double * var_mas, int var_mas_count,
+void results_to_file(const string & filename_res, int var_mas_count, double * var_mas,
                      double * result_value_mas_x, double * result_value_mas_y,
                      double * std_values_mas_x, double * std_values_mas_y,
                      double * result_av_time, double * result_nOpt,

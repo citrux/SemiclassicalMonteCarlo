@@ -171,4 +171,4 @@ Point point_k_m(int k, int m, const Params & params);
     * Массив координат точек в импульсном пространстве
     *
 */
-void points_mas(double * px_mas, double * py_mas, const Params & params);
+void make_grid(double * px_mas, double * py_mas, const Params & params);

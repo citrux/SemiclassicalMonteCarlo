@@ -1,4 +1,6 @@
+#include <ctime>
 #include "modelling_tools.h"
+#include "logger.h"
 
 double random_uniform(unsigned int & x1, unsigned int & y1, unsigned int & z1,
                       unsigned int & w1) {
@@ -259,6 +261,10 @@ Result_one_point one_graphic_point(const Params & params, double beta,
                                    double * px_mas, double * py_mas,
                                    double * WerOpt, double * WerAc,
                                    double var_value, const string & filename_base) {
+    logger(LOG_INFO, "Calculate current density for " + to_string(var_value) +"...");
+
+    time_t time_load = time(NULL);
+
     double * values_x = new double[params.n_part]; // плотность постоянного
     // тока вдоль Ох (до
     // усреднения по ансамблю)
@@ -287,15 +293,12 @@ Result_one_point one_graphic_point(const Params & params, double beta,
         seed[j] = ((unsigned int) rand()) % 100000000 + 100000000;
     };
 
-    // Запуск процесса моделирования на сопроцессоре Xeon Phi
-    {
-        omp_set_num_threads(params.num_threads_openmp);
-#pragma omp parallel for
-        for (int j = 0; j < params.n_part; j++) {
-            jobKernel(values_x, values_y, av_time, nAc, nOpt, params, beta,
-                      seed[j], j, px_mas, py_mas, WerAc, WerOpt, px_log, py_log,
-                      num_logs);
-        };
+    omp_set_num_threads(params.num_threads_openmp);
+    #pragma omp parallel for
+    for (int j = 0; j < params.n_part; j++) {
+        jobKernel(values_x, values_y, av_time, nAc, nOpt, params, beta,
+                  seed[j], j, px_mas, py_mas, WerAc, WerOpt, px_log, py_log,
+                  num_logs);
     };
 
     // Записываем значения компонент квазиимпульса в каждый момент времени для
@@ -326,5 +329,6 @@ Result_one_point one_graphic_point(const Params & params, double beta,
     delete[] nOpt;
     delete[] nAc;
 
+    logger(LOG_OK, "\t[DONE in " + to_string(time(NULL) - time_load) + " sec]\n");
     return result;
 }

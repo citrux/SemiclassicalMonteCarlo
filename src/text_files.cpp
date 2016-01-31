@@ -1,26 +1,35 @@
 #include <string>
 #include "text_files.h"
 #include "ini.h"
+#include "logger.h"
 
 
 using namespace std;
 
 void array_from_file(const string & filename, double * px_mas, double * py_mas,
                      double * Wer, const Params & params) {
+    logger(LOG_INFO, "load array from '" + filename + "'...");
+
     ifstream F_prob_in;
     F_prob_in.open(filename);
     for (int i = 0; i < (params.Nx + 1) * (params.Ny + 1); i++)
         F_prob_in >> px_mas[i] >> py_mas[i] >> Wer[i];
     F_prob_in.close();
+
+    logger(LOG_OK, "\t[DONE]\n");
 }
 
 void array_to_file(const string & filename, double * px_mas, double * py_mas,
                    double * Wer, const Params & params) {
+    logger(LOG_INFO, "write array to '" + filename + "'...");
+
     ofstream F_prob_out;
     F_prob_out.open(filename);
     for (int i = 0; i < (params.Nx + 1) * (params.Ny + 1); i++)
         F_prob_out << px_mas[i] << "\t" << py_mas[i] << "\t" << Wer[i] << endl;
     F_prob_out.close();
+
+    logger(LOG_OK, "\t[DONE]\n");
 }
 
 void write_logs(const string & filename_base, double var_value, double * px_log,
@@ -41,20 +50,22 @@ void write_logs(const string & filename_base, double var_value, double * px_log,
     file.close();
 }
 
-void results_to_file(const string & filename_res, double * var_mas, int var_mas_count,
+void results_to_file(const string & filename, int var_mas_count, double * var_mas,
                      double * result_value_mas_x, double * result_value_mas_y,
                      double * std_values_mas_x, double * std_values_mas_y,
                      double * result_av_time, double * result_nOpt,
                      double * result_nAc) {
+    logger(LOG_INFO, "write results to '" + filename + "'...");
+
     ofstream f;
-    f.open(filename_res);
+    f.open(filename);
 
     /*f << "Exc: " << params.Exc << "; Eyc: " << params.Eyc << "; wlo_max: " <<
     params.wlo_max << "; wla_max: " << params.wla_max << "; low: " << low << ";
     high: " << high << "; step: " << step << "; num_threads: " <<
     params.num_threads_openmp << endl;
     f << "Time info: " << total_time << endl;*/
-
+    f << "#E_y\tj_x\tj_y\tsigma_x\tsigma_y\t<t>\tn_opt\tn_ac" << endl;
     for (int i = 0; i < var_mas_count; i++) {
         f << var_mas[i] << "\t" << result_value_mas_x[i] << "\t"
           << result_value_mas_y[i] << "\t" << std_values_mas_x[i] << "\t"
@@ -62,6 +73,8 @@ void results_to_file(const string & filename_res, double * var_mas, int var_mas_
           << result_nOpt[i] << "\t" << result_nAc[i] << endl;
     }
     f.close();
+
+    logger(LOG_OK, "\t[DONE]\n");
 }
 
 
@@ -77,10 +90,13 @@ double str_to_double(const string & str) {
 void load_config(const string & filename, Params & params, Graphic & graphic,
                       Probability & prob) {
 
+    logger(LOG_INFO, "load config from '" + filename + "'...\t");
+
     INIReader reader(filename);
 
     if (reader.ParseError() < 0) {
-        cout << "Can't load '" << filename << "'\n";
+        logger(LOG_ERROR, "[FAIL]\n");
+        logger(LOG_ERROR, "Can't load '" + filename + "'\n");
         exit(1);
     }
 
@@ -156,8 +172,10 @@ void load_config(const string & filename, Params & params, Graphic & graphic,
 
     prob.flag_count_or_load = reader.GetInteger("params", "flag_count_or_load", 0);
     prob.filename_opt = reader.Get("files", "optical", "UNKNOWN");
-    prob.filename_ac = reader.Get("files", "acouctical", "UNKNOWN");
+    prob.filename_ac = reader.Get("files", "acoustical", "UNKNOWN");
     prob.filename_res = reader.Get("files", "result", "UNKNOWN");
+
+    logger(LOG_OK, "[DONE]\n");
 }
 
 int get_var_mas_count(const Graphic & graphic) {

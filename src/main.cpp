@@ -1,4 +1,5 @@
 #include "modelling_tools.h"
+#include "logger.h"
 using namespace std;
 
 int main() {
@@ -8,6 +9,7 @@ int main() {
     Probability prob;
     string config = "config.ini";
 
+    logger(LOG_INFO, "> Loading config\n");
     load_config(config, params, graphic, prob);
     double beta = params.beta;
     Result_one_point result_one_point;
@@ -26,14 +28,15 @@ int main() {
     // фононах
 
     // строим сетку
-    points_mas(px_mas, py_mas, params);
+    make_grid(px_mas, py_mas, params);
 
     if (prob.flag_count_or_load == 1) // если 1, загружаем вероятности из файла
     {
-        cout << "Start loading... ";
+        logger(LOG_INFO, "> Loading files:\n");
+
         array_from_file(prob.filename_opt, px_mas, py_mas, WerOpt, params);
         array_from_file(prob.filename_ac, px_mas, py_mas, WerAc, params);
-        cout << "done" << endl;
+
     } else // иначе вычисляем вероятности
     {
         cout << "Start calculations of scatt. prob. on optical phonons...";
@@ -86,18 +89,11 @@ int main() {
     double * result_nAc =
         new double[var_mas_count]; // среднее количество рассеяний на
     // акустических фононах (по ансамблю)
-    for (int i = 0; i < var_mas_count; i++) {
-        result_value_mas_x[i] = 0.0;
-        result_value_mas_y[i] = 0.0;
-        std_values_mas_x[i] = 0.0;
-        std_values_mas_y[i] = 0.0;
-        result_av_time[i] = 0.0;
-        result_nOpt[i] = 0.0;
-        result_nAc[i] = 0.0;
-    }
+
     /* -----------------------------------------------------------------------------------------------
      */
-    time_t total_time = time(NULL), time_load = time(NULL);
+    logger(LOG_INFO, "> Start calculations\n");
+    time_t total_time = time(NULL);
     for (int i = 0; i < var_mas_count; i++) // для всех значений переменной, в
     // зависимости от которой строим
     // график
@@ -106,8 +102,6 @@ int main() {
         result_one_point =
             one_graphic_point(params, beta, px_mas, py_mas, WerOpt, WerAc,
                               var_mas[i], "");
-        cout << time(NULL) - time_load << endl;
-        time_load = time(NULL);
         result_value_mas_x[i] = result_one_point.result_value_mas_x;
         result_value_mas_y[i] = result_one_point.result_value_mas_y;
         std_values_mas_x[i] = result_one_point.std_values_mas_x;
@@ -117,7 +111,7 @@ int main() {
         result_nAc[i] = result_one_point.result_nAc;
     };
     total_time = time(NULL) - total_time;
-    results_to_file(prob.filename_res, var_mas, var_mas_count, result_value_mas_x,
+    results_to_file(prob.filename_res, var_mas_count, var_mas, result_value_mas_x,
                     result_value_mas_y, std_values_mas_x, std_values_mas_y,
                     result_av_time, result_nOpt, result_nAc);
 }

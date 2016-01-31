@@ -1,4 +1,5 @@
 #include "material_specific.h"
+#include "logger.h"
 /*
     *
     * Выражение для энергетического спектра (в декартовых координатах)
@@ -157,8 +158,8 @@ Point point_k_m(int k, int m, const Params & params) {
     * Массив координат точек в импульсном пространстве
     *
 */
-void points_mas(double * px_mas, double * py_mas, const Params & params) {
-
+void make_grid(double * px_mas, double * py_mas, const Params & params) {
+    logger(LOG_INFO, "creating grid...");
     int Nx = params.Nx;
     int Ny = params.Ny;
     Point temp_p;
@@ -168,4 +169,5 @@ void points_mas(double * px_mas, double * py_mas, const Params & params) {
             px_mas[j + i * (Ny + 1)] = temp_p.x;
             py_mas[j + i * (Ny + 1)] = temp_p.y;
         };
+    logger(LOG_OK, "\t[DONE]\n");
 }
