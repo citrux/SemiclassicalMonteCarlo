@@ -17,11 +17,11 @@ w1 = 88675123;
     mas[idx] = random_uniform(x1, y1, z1, w1);
 }*/
 
-void runge(double & px, double & py, double t, Params * params) {
+void runge(double & px, double & py, double t, const Params & params) {
     double px_1 = px;
     double py_1 = py;
     double kx1, kx2, kx3, kx4, ky1, ky2, ky3, ky4;
-    double dt = (*params).dt;
+    double dt = params.dt;
 
     kx1 = right_x(px_1, py_1, t, params);
     ky1 = right_y(px_1, py_1, t, params);
@@ -39,7 +39,7 @@ void runge(double & px, double & py, double t, Params * params) {
 }
 
 Point init_dist(unsigned int & x1, unsigned int & y1, unsigned int & z1,
-                unsigned int & w1, Params * params) {
+                unsigned int & w1, const Params & params) {
     double psi;
     double p;
     double z;
@@ -49,7 +49,7 @@ Point init_dist(unsigned int & x1, unsigned int & y1, unsigned int & z1,
         psi = 2 * M_PI * random_uniform(x1, y1, z1, w1);
         p = pmax(psi, params) * random_uniform(x1, y1, z1, w1);
         z = random_uniform(x1, y1, z1, w1);
-        f = 1 / ((*params).Anorm) * distrib_function(p, psi, params);
+        f = 1 / (params.Anorm) * distrib_function(p, psi, params);
     } while (z >= f);
     point.x = p * cos(psi);
     point.y = p * sin(psi);
@@ -91,7 +91,7 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
                double * dev_average_time_array, unsigned int * dev_nAc,
                unsigned int * dev_nOpt,
 
-               Params * params, double beta, unsigned int rand_init_value,
+               const Params & params, double beta, unsigned int rand_init_value,
                int idx,
 
                double * px_mas, double * py_mas, double * res_ac,
@@ -136,19 +136,19 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
     int nOpt = 0;
 
     Params params_opt, params_ac;
-    params_opt = *params;
+    params_opt = params;
     params_opt.beta = beta;
-    params_ac = *params;
+    params_ac = params;
     params_ac.beta = 0.0;
 
     int t_num = 0;
 
-    while (t < (*params).all_time) {
+    while (t < params.all_time) {
         vx = vx_fun(px, py, params); // вычисляем значения компонент скорости
         vy = vy_fun(px, py, params);
 
-        value_x += vx * (*params).dt;
-        value_y += vy * (*params).dt;
+        value_x += vx * params.dt;
+        value_y += vy * params.dt;
 
         runge(px, py, t, params); // решаем уравнения движения
 
@@ -160,17 +160,17 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
         py = p.y;
         px_log_local[t_num] = px;
         py_log_local[t_num] = py;
-        t += (*params).dt;
+        t += params.dt;
 
         // вычисляем вероятности перехода в результате рассеяния на акустических
         // и оптических фононах
-        wla = (*params).wla_max *
-              getWer(p.x, p.y, px_mas, py_mas, res_ac, &params_ac);
-        wlo = (*params).wlo_max *
-              getWer(p.x, p.y, px_mas, py_mas, res_opt, &params_opt);
+        wla = params.wla_max *
+              getWer(p.x, p.y, px_mas, py_mas, res_ac, params_ac);
+        wlo = params.wlo_max *
+              getWer(p.x, p.y, px_mas, py_mas, res_opt, params_opt);
 
         r = -log(random_uniform(x1, y1, z1, w1));
-        wsum += (wlo + wla) * (*params).dt;
+        wsum += (wlo + wla) * params.dt;
 
         if (wsum > r) {
             n0++; // наращиваем счетчик общего числа рассеяний
@@ -179,7 +179,7 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
             if (wla > r * (wlo + wla)) {
                 nAc++; // наращиваем счетчик рассеяний на акустических фононах
                 energy_value = energy_psi(sqrt(px * px + py * py),
-                                          atan2(py, px), &params_ac);
+                                          atan2(py, px), params_ac);
                 flag = false;
                 iCount = 0;
                 while (!flag) {
@@ -187,11 +187,11 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
                           random_uniform(x1, y1, z1, w1); // случайным образом
                     // разыгрываем фазу
                     // квазиимпульса
-                    p_max = pmax(psi, &params_ac); // максимальное значение
+                    p_max = pmax(psi, params_ac); // максимальное значение
                     // модуля квазиимпульса
                     // в направлении угла psi
                     p1 = apply_Newton_psi_energy(psi, flag, energy_value, p_max,
-                                                 &params_ac);
+                                                 params_ac);
                     // если p1 существует, то flag = true, и мы правильно
                     // подобрали угол рассеяния, поэтому выходим из цикла
 
@@ -206,11 +206,11 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
             } else {
                 if ((wlo > 0.0001) &&
                     (energy_psi(sqrt(px * px + py * py), atan2(py, px),
-                                &params_opt) >= params_opt.beta)) {
+                                params_opt) >= params_opt.beta)) {
                     nOpt++; // наращиваем счетчик рассеяний на оптических
                             // фононах
                     energy_value = energy_psi(sqrt(px * px + py * py),
-                                              atan2(py, px), &params_opt) -
+                                              atan2(py, px), params_opt) -
                                    params_opt.beta;
                     flag = false;
                     iCount = 0;
@@ -221,11 +221,11 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
                                                              // образом
                         // разыгрываем фазу
                         // квазиимпульса
-                        p_max = pmax(psi, &params_opt); // максимальное значение
+                        p_max = pmax(psi, params_opt); // максимальное значение
                         // модуля квазиимпульса
                         // в направлении угла psi
                         p1 = apply_Newton_psi_energy(psi, flag, energy_value,
-                                                     p_max, &params_opt);
+                                                     p_max, params_opt);
                         // если p1 существует, то flag = true, и мы правильно
                         // подобрали угол рассеяния, поэтому выходим из цикла
 
@@ -255,43 +255,43 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
     delete[] py_log_local;
 }
 
-Result_one_point one_graphic_point(Params * params, double beta,
+Result_one_point one_graphic_point(const Params & params, double beta,
                                    double * px_mas, double * py_mas,
                                    double * WerOpt, double * WerAc,
                                    double var_value, const string & filename_base) {
-    double * values_x = new double[(*params).n_part]; // плотность постоянного
+    double * values_x = new double[params.n_part]; // плотность постоянного
     // тока вдоль Ох (до
     // усреднения по ансамблю)
-    double * values_y = new double[(*params).n_part]; // плотность постоянного
+    double * values_y = new double[params.n_part]; // плотность постоянного
     // тока вдоль Оу (до
     // усреднения по ансамблю)
-    double * av_time = new double[(*params).n_part]; // среднее время релаксации
+    double * av_time = new double[params.n_part]; // среднее время релаксации
     // (до усреднения по
     // ансамблю)
     unsigned int * nOpt =
-        new unsigned int[(*params).n_part]; // количество рассеяний на
+        new unsigned int[params.n_part]; // количество рассеяний на
     // оптических фононах
     unsigned int * nAc =
-        new unsigned int[(*params).n_part]; // количество рассеяний на
+        new unsigned int[params.n_part]; // количество рассеяний на
     // акустических фононах
 
     //Массивы-логи
-    int num_logs = (int) ((*params).all_time / ((*params).dt)) + 1;
-    double * px_log = new double[num_logs * ((*params).n_part)];
-    double * py_log = new double[num_logs * ((*params).n_part)];
+    int num_logs = (int) (params.all_time / (params.dt)) + 1;
+    double * px_log = new double[num_logs * (params.n_part)];
+    double * py_log = new double[num_logs * (params.n_part)];
 
     // Инициализируем генератор случайных чисел
     srand(time(NULL));
-    unsigned int * seed = new unsigned int[(*params).n_part];
-    for (int j = 0; j < (*params).n_part; j++) {
+    unsigned int * seed = new unsigned int[params.n_part];
+    for (int j = 0; j < params.n_part; j++) {
         seed[j] = ((unsigned int) rand()) % 100000000 + 100000000;
     };
 
     // Запуск процесса моделирования на сопроцессоре Xeon Phi
     {
-        omp_set_num_threads((*params).num_threads_openmp);
+        omp_set_num_threads(params.num_threads_openmp);
 #pragma omp parallel for
-        for (int j = 0; j < (*params).n_part; j++) {
+        for (int j = 0; j < params.n_part; j++) {
             jobKernel(values_x, values_y, av_time, nAc, nOpt, params, beta,
                       seed[j], j, px_mas, py_mas, WerAc, WerOpt, px_log, py_log,
                       num_logs);
@@ -306,13 +306,13 @@ Result_one_point one_graphic_point(Params * params, double beta,
 
     // Помещаем результат расчета для одной точки графика в структуру
     Result_one_point result;
-    result.result_value_mas_x = Mean(values_x, (*params).n_part);
-    result.result_value_mas_y = Mean(values_y, (*params).n_part);
-    result.std_values_mas_x = Std(values_x, (*params).n_part);
-    result.std_values_mas_y = Std(values_y, (*params).n_part);
-    result.result_av_time = Mean(av_time, (*params).n_part);
-    result.result_nOpt = Mean(nOpt, (*params).n_part);
-    result.result_nAc = Mean(nAc, (*params).n_part);
+    result.result_value_mas_x = Mean(values_x, params.n_part);
+    result.result_value_mas_y = Mean(values_y, params.n_part);
+    result.std_values_mas_x = Std(values_x, params.n_part);
+    result.std_values_mas_y = Std(values_y, params.n_part);
+    result.result_av_time = Mean(av_time, params.n_part);
+    result.result_nOpt = Mean(nOpt, params.n_part);
+    result.result_nAc = Mean(nAc, params.n_part);
 
     // Удаляем массивы - логи
     delete[] px_log;

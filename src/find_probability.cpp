@@ -31,7 +31,7 @@ bool sign2(double leftBound, double rightBound) {
     *
 */
 double Newton_psi_energy(double p1_low, double p1_high, double psi,
-                         double energy_value, Params * params) {
+                         double energy_value, const Params & params) {
     double pn, pn1;
     bool usl1 = true;
 
@@ -48,7 +48,7 @@ double Newton_psi_energy(double p1_low, double p1_high, double psi,
         pn1 = pn -
               (energy_psi(pn, psi, params) - energy_value) /
                   d_energy_psi(pn, psi, params);
-        if (fabs(pn1 - pn) > (*params).Newton_abs_error) {
+        if (fabs(pn1 - pn) > params.Newton_abs_error) {
             pn = pn1;
         } else {
             usl1 = false;
@@ -65,18 +65,18 @@ double Newton_psi_energy(double p1_low, double p1_high, double psi,
     *
 */
 double apply_Newton_psi_energy(double psi, bool & flag, double energy_value,
-                               double pmax, Params * params) {
+                               double pmax, const Params & params) {
     double tempres = 0;
     // объявляем и заполняем массив значений p1, на котором будем искать решение
     // p1 берем в промежутке 0..p1max
-    double * mas_p1 = new double[(*params).Newton_n_points + 1];
-    double step = pmax / (*params).Newton_n_points;
+    double * mas_p1 = new double[params.Newton_n_points + 1];
+    double step = pmax / params.Newton_n_points;
     double lb, rb;
 
-    for (int i = 0; i < (*params).Newton_n_points + 1; i++) {
+    for (int i = 0; i < params.Newton_n_points + 1; i++) {
         mas_p1[i] = i * step;
     }
-    for (int i = 0; i < (*params).Newton_n_points; i++) {
+    for (int i = 0; i < params.Newton_n_points; i++) {
         // если на интервале от mas_py1[i] до mas_py1[i+1] функция
         // eps(p1)-energy_value меняет знак,
         // то ищем на этом промежутке решение
@@ -111,15 +111,15 @@ L1:
     * Wer - массив значений вероятности, посчитанной на узлах выбранной сетки
 */
 double getWer(double px, double py, double * px_mas, double * py_mas,
-              double * Wer, Params * params) {
-    double Ax = (*params).Ax;
-    double Ay = (*params).Ay;
-    double Bx = (*params).Bx;
-    double By = (*params).By;
-    double Dx = (*params).Dx;
-    double Dy = (*params).Dy;
-    int Nx = (*params).Nx;
-    int Ny = (*params).Ny;
+              double * Wer, const Params & params) {
+    double Ax = params.Ax;
+    double Ay = params.Ay;
+    double Bx = params.Bx;
+    double By = params.By;
+    double Dx = params.Dx;
+    double Dy = params.Dy;
+    int Nx = params.Nx;
+    int Ny = params.Ny;
     // высчитываем номер клеточки по x и y
     double K1x =
         ((By - Ay) / (Bx - Ax) * px - (Dy - Ay) / (Dx - Ax) * Ax - py + Ay) /
@@ -242,12 +242,12 @@ double getWer(double px, double py, double * px_mas, double * py_mas,
     * Выражение, интеграл от которого берется методом Симпсона
     *
 */
-double simpson_function(double psi, double px, double py, Params * params) {
+double simpson_function(double psi, double px, double py, const Params & params) {
     bool flag = false;
     double result = 0.0;
 
     double p1max = pmax(psi, params);
-    double energy_value = energy(px, py, params) - (*params).beta;
+    double energy_value = energy(px, py, params) - params.beta;
 
     double p = apply_Newton_psi_energy(psi, flag, energy_value, p1max, params);
 
@@ -264,11 +264,11 @@ double simpson_function(double psi, double px, double py, Params * params) {
     * Реализация метода Симпсона
     *
 */
-double simpson(double px, double py, Params * params) {
+double simpson(double px, double py, const Params & params) {
     double result = 0.0, a = 0, b = 2 * M_PI;
-    double h = (b - a) / ((double) (*params).Simson_n);
+    double h = (b - a) / ((double) params.Simson_n);
 
-    for (int i = 1; i < (*params).Simson_n - 1; i += 2) {
+    for (int i = 1; i < params.Simson_n - 1; i += 2) {
         double psi_1 = a + h * (i - 1);
         double psi_2 = a + h * i;
         double psi_3 = a + h * (i + 1);
@@ -287,25 +287,25 @@ double simpson(double px, double py, Params * params) {
     *
 */
 void full_probability_psi(double * px_mas, double * py_mas, double * res_mas,
-                          Params * params) {
-    omp_set_num_threads((*params).num_threads_openmp);
+                          const Params & params) {
+    omp_set_num_threads(params.num_threads_openmp);
 #pragma omp parallel for
-    for (int i = 0; i < ((*params).Nx + 1) * ((*params).Ny + 1); i++) {
+    for (int i = 0; i < (params.Nx + 1) * (params.Ny + 1); i++) {
         res_mas[i] = simpson(px_mas[i], py_mas[i], params);
         // printf("%d \t %f \t %f \t %f\n", i, px_mas[i], py_mas[i],
         // res_mas[i]);
     };
 }
 
-double distrib_function(double p, double psi, Params * params) {
-    return exp((-1.0 / (*params).T) * energy_psi(p, psi, params)) * p;
+double distrib_function(double p, double psi, const Params & params) {
+    return exp((-1.0 / params.T) * energy_psi(p, psi, params)) * p;
 }
 
-double ditrib_function_int_p(double psi, Params * params) {
+double ditrib_function_int_p(double psi, const Params & params) {
     double result = 0.0, a = 0, b = pmax(psi, params);
-    double h = (b - a) / ((double) (((*params).Simson_n) * 5.0));
+    double h = (b - a) / ((double) ((params.Simson_n) * 5.0));
 
-    for (int i = 1; i < ((*params).Simson_n) * 5.0 - 1; i += 2) {
+    for (int i = 1; i < (params.Simson_n) * 5.0 - 1; i += 2) {
         double p_1 = a + h * (i - 1);
 
         double p_2 = a + h * i;
@@ -319,11 +319,11 @@ double ditrib_function_int_p(double psi, Params * params) {
     return result * h / 3;
 }
 
-double A_norm(Params * params) {
+double A_norm(const Params & params) {
     double result = 0.0, a = 0, b = 2 * M_PI;
-    double h = (b - a) / ((double) (((*params).Simson_n) * 5.0));
+    double h = (b - a) / ((double) ((params.Simson_n) * 5.0));
 
-    for (int i = 1; i < ((*params).Simson_n) * 5.0 - 1; i += 2) {
+    for (int i = 1; i < params.Simson_n * 5.0 - 1; i += 2) {
         double psi_1 = a + h * (i - 1);
         double psi_2 = a + h * i;
         double psi_3 = a + h * (i + 1);

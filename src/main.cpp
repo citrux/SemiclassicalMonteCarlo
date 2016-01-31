@@ -5,15 +5,10 @@ int main() {
     // задаем параметры задачи
     Params params;
     Graphic graphic;
-    int flag_count_or_load; // если 1, загружаем значения вероятностей из
-    // файлов, иначе - вычисляем
-    set_init_params(&params);
+    Probability prob;
     string config = "config.ini";
-    string filename_params_after, filename_opt, filename_ac, filename_res;
 
-    filename_from_file(config, filename_params_after, filename_opt, filename_ac,
-                       filename_res);
-    params_from_file(config, &params, &graphic, &flag_count_or_load);
+    load_config(config, params, graphic, prob);
     double beta = params.beta;
     Result_one_point result_one_point;
 
@@ -31,36 +26,36 @@ int main() {
     // фононах
 
     // строим сетку
-    points_mas(px_mas, py_mas, &params);
+    points_mas(px_mas, py_mas, params);
 
-    if (flag_count_or_load == 1) // если 1, загружаем вероятности из файла
+    if (prob.flag_count_or_load == 1) // если 1, загружаем вероятности из файла
     {
         cout << "Start loading... ";
-        array_from_file(filename_opt, px_mas, py_mas, WerOpt, params);
-        array_from_file(filename_ac, px_mas, py_mas, WerAc, params);
+        array_from_file(prob.filename_opt, px_mas, py_mas, WerOpt, params);
+        array_from_file(prob.filename_ac, px_mas, py_mas, WerAc, params);
         cout << "done" << endl;
     } else // иначе вычисляем вероятности
     {
         cout << "Start calculations of scatt. prob. on optical phonons...";
         time_t ttt = time(NULL);
         params.beta = beta;
-        { full_probability_psi(px_mas, py_mas, WerOpt, &params); };
+        full_probability_psi(px_mas, py_mas, WerOpt, params);
         cout << time(NULL) - ttt << endl;
         cout << "Writing the scatt. prob. on optical phonons in text file ... ";
-        array_to_file(filename_opt, px_mas, py_mas, WerOpt, params);
+        array_to_file(prob.filename_opt, px_mas, py_mas, WerOpt, params);
         cout << "done." << endl
-             << " File name: " << filename_opt << endl;
+             << " File name: " << prob.filename_opt << endl;
 
         ttt = time(NULL);
         cout << "Start calculations of scatt. prob. acoustical phonons...";
         params.beta = 0;
-        { full_probability_psi(px_mas, py_mas, WerAc, &params); }
+        full_probability_psi(px_mas, py_mas, WerAc, params);
         cout << time(NULL) - ttt << endl;
         cout << "Writing the scatt. prob. on acoustical phonons in text file "
                 "... ";
-        array_to_file(filename_ac, px_mas, py_mas, WerAc, params);
+        array_to_file(prob.filename_ac, px_mas, py_mas, WerAc, params);
         cout << "done." << endl
-             << " File name: " << filename_ac << endl;
+             << " File name: " << prob.filename_ac << endl;
     };
 
     /* массивы, необходимые для построения графика зависимости постоянной
@@ -107,10 +102,10 @@ int main() {
     // зависимости от которой строим
     // график
     {
-        var_value_graphic(graphic.num_var, var_mas[i], &params);
+        var_value_graphic(graphic.num_var, var_mas[i], params);
         result_one_point =
-            one_graphic_point(&params, beta, px_mas, py_mas, WerOpt, WerAc,
-                              var_mas[i], filename_params_after);
+            one_graphic_point(params, beta, px_mas, py_mas, WerOpt, WerAc,
+                              var_mas[i], "");
         cout << time(NULL) - time_load << endl;
         time_load = time(NULL);
         result_value_mas_x[i] = result_one_point.result_value_mas_x;
@@ -122,9 +117,7 @@ int main() {
         result_nAc[i] = result_one_point.result_nAc;
     };
     total_time = time(NULL) - total_time;
-    results_to_file(filename_res, var_mas, var_mas_count, result_value_mas_x,
+    results_to_file(prob.filename_res, var_mas, var_mas_count, result_value_mas_x,
                     result_value_mas_y, std_values_mas_x, std_values_mas_y,
                     result_av_time, result_nOpt, result_nAc);
-    // params_to_file(filename_params_after, filename_params, &params, &graphic,
-    //                (int) total_time, flag_count_or_load);
 }

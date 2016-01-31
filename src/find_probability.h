@@ -20,7 +20,7 @@ bool sign2(double leftBound, double rightBound);
     *
 */
 double Newton_psi_energy(double p1_low, double p1_high, double psi,
-                         double energy_value, Params * params);
+                         double energy_value, const Params & params);
 
 /*
     *
@@ -30,7 +30,7 @@ double Newton_psi_energy(double p1_low, double p1_high, double psi,
     *
 */
 double apply_Newton_psi_energy(double psi, bool & flag, double energy_value,
-                               double pmax, Params * params);
+                               double pmax, const Params & params);
 
 /*
     * Вычисление вероятности рассеяния электрона с импульсом p при помощи
@@ -49,21 +49,21 @@ double apply_Newton_psi_energy(double psi, bool & flag, double energy_value,
     * Wer - массив значений вероятности, посчитанной на узлах выбранной сетки
 */
 double getWer(double px, double py, double * px_mas, double * py_mas,
-              double * Wer, Params * params);
+              double * Wer, const Params & params);
 
 /*
     *
     * Выражение, интеграл от которого берется методом Симпсона
     *
 */
-double simpson_function(double psi, double px, double py, Params * params);
+double simpson_function(double psi, double px, double py, const Params & params);
 
 /*
     *
     * Реализация метода Симпсона
     *
 */
-double simpson(double px, double py, Params * params);
+double simpson(double px, double py, const Params & params);
 
 /*
     *
@@ -71,10 +71,10 @@ double simpson(double px, double py, Params * params);
     *
 */
 void full_probability_psi(double * px_mas, double * py_mas, double * res_mas,
-                          Params * params);
+                          const Params & params);
 
-double distrib_function(double p, double psi, Params * params);
+double distrib_function(double p, double psi, const Params & params);
 
-double A_norm(Params * params);
+double A_norm(const Params & params);
 
-double ditrib_function_int_p(double phi, Params * params);
+double ditrib_function_int_p(double phi, const Params & params);

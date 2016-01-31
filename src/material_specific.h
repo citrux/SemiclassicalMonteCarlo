@@ -1,5 +1,7 @@
 #define _USE_MATH_DEFINES
-#include <math.h>
+#include <cmath>
+#include <string>
+using std::string;
 /*
     *
     * Структура, хранящая компоненты импульса
@@ -88,9 +90,9 @@ struct Params {
 struct Probability {
     int flag_count_or_load; // если 1, загружаем значения вероятностей из
     // файлов, иначе - вычисляем
-    char * filename_opt;
-    char * filename_ac;
-    char * filename_res;
+    string filename_opt;
+    string filename_ac;
+    string filename_res;
 };
 
 /*
@@ -106,67 +108,67 @@ struct Graphic {
     int num_var; // Номер переменной, в зависимости от которой строим график
 };
 
-void set_init_params(Params * params);
+void set_init_params(Params & params);
 
 /*
     *
     * Выражение для энергетического спектра (в декартовых координатах)
     *
 */
-double energy(double px, double py, Params * params);
+double energy(double px, double py, const Params & params);
 /*
     *
     * Выражение для энергетического спектра (в полярных координатах)
     *
 */
-double energy_psi(double p, double psi, Params * params);
+double energy_psi(double p, double psi, const Params & params);
 /*
     *
     * Производная энергии по модулю импульса (в полярных координатах)
     *
 */
-double d_energy_psi(double p, double psi, Params * params);
+double d_energy_psi(double p, double psi, const Params & params);
 
 /*
     *
     * Компоненты скорости
     *
 */
-double vx_fun(double px, double py, Params * params);
-double vy_fun(double px, double py, Params * params);
+double vx_fun(double px, double py, const Params & params);
+double vy_fun(double px, double py, const Params & params);
 
 /*
     *
     * Правые части уравнений движения
     *
 */
-double right_x(double px, double py, double t, Params * params);
-double right_y(double px, double py, double t, Params * params);
+double right_x(double px, double py, double t, const Params & params);
+double right_y(double px, double py, double t, const Params & params);
 
 /*
     *
     * Границы первой зоны Бриллюэна
     *
 */
-double pmax(double psi, Params * params);
+double pmax(double psi, const Params & params);
 
 /*
     *
     * Функция, приводящая квазиимпульс к первой зоне Бриллюэна
     *
 */
-Point ToFirstBand(Point p0, Params * params);
+Point ToFirstBand(Point p0, const Params & params);
 
 /*
     *
     * Возвращает точку с индексами (k,m)
     *
 */
-Point point_k_m(int k, int m, Params * params);
+Point point_k_m(int k, int m, const Params & params);
 
 /*
     *
     * Массив координат точек в импульсном пространстве
     *
 */
-void points_mas(double * px_mas, double * py_mas, Params * params);
+void points_mas(double * px_mas, double * py_mas, const Params & params);
