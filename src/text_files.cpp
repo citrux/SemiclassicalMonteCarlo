@@ -165,12 +165,12 @@ void load_config(const string & filename, Params & params, Graphic & graphic,
     params.Anorm = A_norm(params);
     params.max_prob = 1;
 
-    graphic.low = reader.GetReal("params", "low", 0);
-    graphic.high = reader.GetReal("params", "high", 0);
-    graphic.step = reader.GetReal("params", "step", 0);
-    graphic.num_var = reader.GetInteger("params", "num_var", -1);
+    graphic.low = reader.GetReal("plotting", "low", 0);
+    graphic.high = reader.GetReal("plotting", "high", 0);
+    graphic.step = reader.GetReal("plotting", "step", 0);
+    graphic.num_var = reader.GetInteger("plotting", "num_var", -1);
 
-    prob.flag_count_or_load = reader.GetInteger("params", "flag_count_or_load", 0);
+    prob.flag_count_or_load = reader.GetInteger("mode", "flag_count_or_load", 0);
     prob.filename_opt = reader.Get("files", "optical", "UNKNOWN");
     prob.filename_ac = reader.Get("files", "acoustical", "UNKNOWN");
     prob.filename_res = reader.Get("files", "result", "UNKNOWN");
