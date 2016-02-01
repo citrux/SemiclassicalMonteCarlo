@@ -15,8 +15,8 @@ int main() {
     Result_one_point result_one_point;
 
     // задаем массивы, хранящие значения вероятности
-    double * px_mas = new double[(params.Nx + 1) * (params.Ny + 1)];
-    double * py_mas = new double[(params.Nx + 1) * (params.Ny + 1)];
+    Point * p_grid = new Point[(params.Nx + 1) * (params.Ny + 1)];
+
     double * WerOpt =
         new double[(params.Nx + 1) * (params.Ny + 1)]; // массив значений
     // вероятности рассеяния
@@ -28,35 +28,35 @@ int main() {
     // фононах
 
     // строим сетку
-    make_grid(px_mas, py_mas, params);
+    make_grid(p_grid, params);
 
     if (prob.flag_count_or_load == 1) // если 1, загружаем вероятности из файла
     {
         logger(LOG_INFO, "> Loading files:\n");
 
-        array_from_file(prob.filename_opt, px_mas, py_mas, WerOpt, params);
-        array_from_file(prob.filename_ac, px_mas, py_mas, WerAc, params);
+        array_from_file(prob.filename_opt, p_grid, WerOpt, params);
+        array_from_file(prob.filename_ac, p_grid, WerAc, params);
 
     } else // иначе вычисляем вероятности
     {
         cout << "Start calculations of scatt. prob. on optical phonons...";
         time_t ttt = time(NULL);
         params.beta = beta;
-        full_probability_psi(px_mas, py_mas, WerOpt, params);
+        full_probability_psi(p_grid, WerOpt, params);
         cout << time(NULL) - ttt << endl;
         cout << "Writing the scatt. prob. on optical phonons in text file ... ";
-        array_to_file(prob.filename_opt, px_mas, py_mas, WerOpt, params);
+        array_to_file(prob.filename_opt, p_grid, WerOpt, params);
         cout << "done." << endl
              << " File name: " << prob.filename_opt << endl;
 
         ttt = time(NULL);
         cout << "Start calculations of scatt. prob. acoustical phonons...";
         params.beta = 0;
-        full_probability_psi(px_mas, py_mas, WerAc, params);
+        full_probability_psi(p_grid, WerAc, params);
         cout << time(NULL) - ttt << endl;
         cout << "Writing the scatt. prob. on acoustical phonons in text file "
                 "... ";
-        array_to_file(prob.filename_ac, px_mas, py_mas, WerAc, params);
+        array_to_file(prob.filename_ac, p_grid, WerAc, params);
         cout << "done." << endl
              << " File name: " << prob.filename_ac << endl;
     };
@@ -100,7 +100,7 @@ int main() {
     {
         var_value_graphic(graphic.num_var, var_mas[i], params);
         result_one_point =
-            one_graphic_point(params, beta, px_mas, py_mas, WerOpt, WerAc,
+            one_graphic_point(params, beta, p_grid, WerOpt, WerAc,
                               var_mas[i], "");
         result_value_mas_x[i] = result_one_point.result_value_mas_x;
         result_value_mas_y[i] = result_one_point.result_value_mas_y;

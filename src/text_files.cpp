@@ -6,27 +6,27 @@
 
 using namespace std;
 
-void array_from_file(const string & filename, double * px_mas, double * py_mas,
+void array_from_file(const string & filename, Point * p_grid,
                      double * Wer, const Params & params) {
     logger(LOG_INFO, "load array from '" + filename + "'...");
 
     ifstream F_prob_in;
     F_prob_in.open(filename);
     for (int i = 0; i < (params.Nx + 1) * (params.Ny + 1); i++)
-        F_prob_in >> px_mas[i] >> py_mas[i] >> Wer[i];
+        F_prob_in >> p_grid[i].x >> p_grid[i].y >> Wer[i];
     F_prob_in.close();
 
     logger(LOG_OK, "\t[DONE]\n");
 }
 
-void array_to_file(const string & filename, double * px_mas, double * py_mas,
+void array_to_file(const string & filename, Point * p_grid,
                    double * Wer, const Params & params) {
     logger(LOG_INFO, "write array to '" + filename + "'...");
 
     ofstream F_prob_out;
     F_prob_out.open(filename);
     for (int i = 0; i < (params.Nx + 1) * (params.Ny + 1); i++)
-        F_prob_out << px_mas[i] << "\t" << py_mas[i] << "\t" << Wer[i] << endl;
+        F_prob_out << p_grid[i].x << "\t" << p_grid[i].y << "\t" << Wer[i] << endl;
     F_prob_out.close();
 
     logger(LOG_OK, "\t[DONE]\n");
@@ -65,7 +65,7 @@ void results_to_file(const string & filename, int var_mas_count, double * var_ma
     high: " << high << "; step: " << step << "; num_threads: " <<
     params.num_threads_openmp << endl;
     f << "Time info: " << total_time << endl;*/
-    f << "#E_y\tj_x\tj_y\tsigma_x\tsigma_y\t<t>\tn_opt\tn_ac" << endl;
+    f << "#  E_y\tj_x\tj_y\tsigma_x\tsigma_y\ttau\tn_opt\tn_ac" << endl;
     for (int i = 0; i < var_mas_count; i++) {
         f << var_mas[i] << "\t" << result_value_mas_x[i] << "\t"
           << result_value_mas_y[i] << "\t" << std_values_mas_x[i] << "\t"
@@ -83,6 +83,13 @@ double str_to_double(const string & str) {
     double res;
     istream >> res;
     return res;
+}
+
+Point to_point(const string & str) {
+    istringstream istream(str);
+    Point p;
+    istream >> p.x >> p.y;
+    return p;
 }
 
 // на четных строках записаны комментарии, на нечетных строках записаны значения
@@ -137,13 +144,10 @@ void load_config(const string & filename, Params & params, Graphic & graphic,
     params.px_max =
         reader.GetReal("params", "px_max", 0); // максимальное значение компонент квазиимпульса
     params.py_max = reader.GetReal("params", "py_max", 0);
-    params.Ax = reader.GetReal("params", "Ax", 0); // координаты вершин параллелограмма,
+    params.A = to_point(reader.Get("params", "A", "0 0")); // координаты вершин параллелограмма,
     // ограничивающего первую зону Бриллюэна
-    params.Ay = reader.GetReal("params", "Ay", 0);
-    params.Bx = reader.GetReal("params", "Bx", 0);
-    params.By = reader.GetReal("params", "By", 0);
-    params.Dx = reader.GetReal("params", "Dx", 0);
-    params.Dy = reader.GetReal("params", "Dy", 0);
+    params.B = to_point(reader.Get("params", "B", "0 0"));
+    params.D = to_point(reader.Get("params", "D", "0 0"));
     params.Newton_abs_error = reader.GetReal("params", "Newton_abs_error", 0); // абсолютная ошибка вычисления
     // корня уравнения при
     // использовании метода Ньютона
@@ -185,7 +189,7 @@ int get_var_mas_count(const Graphic & graphic) {
 }
 
 void set_var_mas(const Graphic & graphic, int var_mas_count, double * var_mas) {
-    double low = graphic.low, high = graphic.high, step = graphic.step;
+    double low = graphic.low, step = graphic.step;
     for (int i = 0; i < var_mas_count; i++)
         var_mas[i] = low + step * i;
 }
@@ -223,6 +227,7 @@ void var_value_graphic(int num_param, double var_value, Params & params) {
         params.T = var_value;
         break;
     default:
-        cout << "Error!";
+        logger(LOG_ERROR, "Error!");
+        exit(1);
     }
 }

@@ -5,8 +5,8 @@
     * Выражение для энергетического спектра (в декартовых координатах)
     *
 */
-double energy(double px, double py, const Params & params) {
-    return (1 - cos(px) * cos(py));
+double energy(Point p, const Params & params) {
+    return (1 - cos(p.x) * cos(p.y));
 }
 /*
     *
@@ -32,12 +32,12 @@ double d_energy_psi(double p, double psi, const Params & params) {
     * Компоненты скорости
     *
 */
-double vx_fun(double px, double py, const Params & params) {
-    return params.vx0 * sin(px) * cos(py);
+double vx_fun(Point p, const Params & params) {
+    return params.vx0 * sin(p.x) * cos(p.y);
 }
 
-double vy_fun(double px, double py, const Params & params) {
-    return params.vy0 * cos(px) * sin(py);
+double vy_fun(Point p, const Params & params) {
+    return params.vy0 * cos(p.x) * sin(p.y);
 }
 
 /*
@@ -46,15 +46,11 @@ double vy_fun(double px, double py, const Params & params) {
     *
 */
 
-double right_x(double px, double py, double t, const Params & params) {
-    // return (params.Exc +
-    // params.Ex*cos(t*params.wx)+params.H*vy_fun(px,py,params));
+double right_x(Point p, double t, const Params & params) {
     return params.Exc;
 }
 
-double right_y(double px, double py, double t, const Params & params) {
-    // return (params.Eyc + params.Ey*cos(t*params.wy+params.phi) -
-    // params.H*vx_fun(px,py,params));
+double right_y(Point p, double t, const Params & params) {
     return params.Ey1 * cos(t * params.wy1) +
            params.Ey2 * cos(t * params.wy2 + params.phi);
 }
@@ -65,15 +61,29 @@ double right_y(double px, double py, double t, const Params & params) {
     *
 */
 double pmax(double psi, const Params & params) {
-    double res;
-    if ((psi >= 0) && (psi < M_PI_2))
-        res = M_PI / (1 + tan(psi)) / cos(psi);
-    if (((psi >= M_PI_2) && (psi < M_PI)))
-        res = -M_PI / (1 - tan(psi)) / cos(psi);
-    if (((psi >= M_PI) && (psi < M_PI * 3 / 2)))
-        res = -M_PI / (1 + tan(psi)) / cos(psi);
-    if ((psi >= 3 * M_PI / 2) && (psi < 2 * M_PI))
-        res = M_PI / (1 - tan(psi)) / cos(psi);
+    // требуется найти пересечение луча с границей четырёхугольника
+    Point C = params.B + (params.D - params.A);
+    Point O = {0, 0};
+    // Считаем расстояние от начала координат до точки пересечения луча с отрезками
+    vec2 OA = params.A - O;
+    vec2 OB = params.B - O;
+    vec2 OC = C - O;
+    vec2 OD = params.D - O;
+    vec2 l = {cos(psi), sin(psi)};
+
+    double res = -1;
+
+    vec2 vs[5] = {OA, OB, OC, OD, OA};
+    for (int i = 0; i < 5; ++i)
+    {
+        double p = cross(vs[i], vs[i+1]) / cross(l, vs[i+1] - vs[i]);
+
+        if (p < 0) continue;
+
+        if (res < 0 || p < res)
+            res = p;
+    }
+
     return res;
 }
 
@@ -82,48 +92,25 @@ double pmax(double psi, const Params & params) {
     * Функция, приводящая квазиимпульс к первой зоне Бриллюэна
     *
 */
-Point ToFirstBand(Point p0, const Params & params) {
-    double px = p0.x;
-    double py = p0.y;
-    double p = sqrt(px * px + py * py);
-    double phi = atan2(py, px);
-    double OK = M_PI / sqrt(2.0); // орт e1 (модуль этого орта)
-    double OM = M_PI / sqrt(2.0); // орт e2 (модуль этого орта)
-    double OK1 =
-        p * cos(phi - M_PI / 4); // проецируем исходный радиус-вектор на орт е1
-    double OM1 =
-        p * sin(phi - M_PI / 4); // проецируем исходный радиус-вектор на орт е2
-    double pxi = floor(
-        OK1 / OK); // целая часть от деления проекции исходного радиус-вектора
-    // на орт е1 на модуль этого вектора
-    double pyi = floor(
-        OM1 / OM); // целая часть от деления проекции исходного радиус-вектора
-    // на орт е2 на модуль этого вектора
-    double pxf =
-        OK1 -
-        pxi * OK; // дробная часть от деления проекции исходного радиус-вектора
-                  // на орт е1 на модуль этого вектора
-    double pyf =
-        OM1 -
-        pyi * OM; // дробная часть от деления проекции исходного радиус-вектора
-                  // на орт е1 на модуль этого вектора
+Point to_first_bz(Point p, const Params & params) {
+    // базис обратной решётки
+    vec2 b = params.B - params.A;
+    vec2 d = params.D - params.A;
 
-    double pxN, pyN;
-    if (fabs(pxi - floor(pxi / 2) * 2) < 0.000001) // если pxi - четная
-        pxN = pxf;
-    else
-        pxN = -(OK - pxf);
+    // строим взаимный базис
+    vec2 bc = ort(b - dot(b, ort(d)) * ort(d));
+    bc = bc / dot(bc, b);
 
-    if (fabs(pyi - floor(pyi / 2) * 2) < 0.000001) // если pyi - четная
-        pyN = pyf;
-    else
-        pyN = -(OM - pyf);
-    double pxN1 = pxN / sqrt(2.0) - pyN / sqrt(2.0);
-    double pyN1 = pxN / sqrt(2.0) + pyN / sqrt(2.0);
-    Point p_res;
-    p_res.x = pxN1;
-    p_res.y = pyN1;
-    return p_res;
+    vec2 dc = ort(d - dot(d, ort(b)) * ort(b));
+    dc = dc / dot(dc, d);
+
+    vec2 pr = p - params.A;
+
+    // находим разложение по базису, используя взаимный базис
+    int nb = floor(dot(pr, bc));
+    int nd = floor(dot(pr, dc));
+
+    return p - nb * b - nd * d;
 }
 
 /*
@@ -132,12 +119,12 @@ Point ToFirstBand(Point p0, const Params & params) {
     *
 */
 Point point_k_m(int k, int m, const Params & params) {
-    double Ax = params.Ax;
-    double Ay = params.Ay;
-    double Bx = params.Bx;
-    double By = params.By;
-    double Dx = params.Dx;
-    double Dy = params.Dy;
+    double Ax = params.A.x;
+    double Ay = params.A.y;
+    double Bx = params.B.x;
+    double By = params.B.y;
+    double Dx = params.D.x;
+    double Dy = params.D.y;
 
     double Kx = Ax + (Dx - Ax) * k / params.Nx;
     double Ky = Ay + (Dy - Ay) * k / params.Nx;
@@ -147,10 +134,8 @@ Point point_k_m(int k, int m, const Params & params) {
         ((By - Ay) / (Bx - Ax) * Kx - (Dy - Ay) / (Dx - Ax) * Mx + My - Ky) /
         ((By - Ay) / (Bx - Ax) - (Dy - Ay) / (Dx - Ax));
     double Oy = (By - Ay) / (Bx - Ax) * (Ox - Kx) + Ky;
-    Point res;
-    res.x = Ox;
-    res.y = Oy;
-    return res;
+
+    return {Ox, Oy};
 }
 
 /*
@@ -158,16 +143,13 @@ Point point_k_m(int k, int m, const Params & params) {
     * Массив координат точек в импульсном пространстве
     *
 */
-void make_grid(double * px_mas, double * py_mas, const Params & params) {
+void make_grid(Point * p_grid, const Params & params) {
     logger(LOG_INFO, "creating grid...");
     int Nx = params.Nx;
     int Ny = params.Ny;
-    Point temp_p;
     for (int i = 0; i < Nx + 1; i++)
         for (int j = 0; j < Ny + 1; j++) {
-            temp_p = point_k_m(i, j, params);
-            px_mas[j + i * (Ny + 1)] = temp_p.x;
-            py_mas[j + i * (Ny + 1)] = temp_p.y;
+            p_grid[j + i * (Ny + 1)] = point_k_m(i, j, params);
         };
     logger(LOG_OK, "\t[DONE]\n");
 }

@@ -69,28 +69,24 @@ double apply_Newton_psi_energy(double psi, bool & flag, double energy_value,
     double tempres = 0;
     // объявляем и заполняем массив значений p1, на котором будем искать решение
     // p1 берем в промежутке 0..p1max
-    double * mas_p1 = new double[params.Newton_n_points + 1];
+
     double step = pmax / params.Newton_n_points;
     double lb, rb;
 
-    for (int i = 0; i < params.Newton_n_points + 1; i++) {
-        mas_p1[i] = i * step;
-    }
-    for (int i = 0; i < params.Newton_n_points; i++) {
+
+    for (int i = 0; i < params.Newton_n_points && !flag; i++) {
         // если на интервале от mas_py1[i] до mas_py1[i+1] функция
         // eps(p1)-energy_value меняет знак,
         // то ищем на этом промежутке решение
-        lb = energy_psi(mas_p1[i], psi, params) - energy_value;
-        rb = energy_psi(mas_p1[i + 1], psi, params) - energy_value;
+        lb = energy_psi(i * step, psi, params) - energy_value;
+        rb = energy_psi((i + 1) * step, psi, params) - energy_value;
         if (sign2(lb, rb)) {
-            tempres = Newton_psi_energy(mas_p1[i], mas_p1[i + 1], psi,
+            tempres = Newton_psi_energy(i * step, (i + 1) * step, psi,
                                         energy_value, params);
             flag = true;
-            goto L1;
         };
     }
-L1:
-    delete[] mas_p1;
+
     return tempres;
 }
 
@@ -110,14 +106,15 @@ L1:
     * points - массив значений импульса - точек сетки
     * Wer - массив значений вероятности, посчитанной на узлах выбранной сетки
 */
-double getWer(double px, double py, double * px_mas, double * py_mas,
-              double * Wer, const Params & params) {
-    double Ax = params.Ax;
-    double Ay = params.Ay;
-    double Bx = params.Bx;
-    double By = params.By;
-    double Dx = params.Dx;
-    double Dy = params.Dy;
+double get_probability(Point p, Point * p_grid, double * Wer, const Params & params) {
+    double Ax = params.A.x;
+    double Ay = params.A.y;
+    double Bx = params.B.x;
+    double By = params.B.y;
+    double Dx = params.D.x;
+    double Dy = params.D.y;
+    double px = p.x;
+    double py = p.y;
     int Nx = params.Nx;
     int Ny = params.Ny;
     // высчитываем номер клеточки по x и y
@@ -138,22 +135,10 @@ double getWer(double px, double py, double * px_mas, double * py_mas,
     double stepAB = (Bx - Ax) / Ny;
     int py_i_temp = (int) floor((M1x - Ax) / stepAB);
     // определяем вершины клеточки, внутрь которой попала наша точка
-    Point p1;
-    p1.x = px_mas[py_i_temp + px_i_temp * (Ny + 1)];
-    p1.y = py_mas[py_i_temp +
-                  px_i_temp * (Ny + 1)]; // cout<<p1.x<<"\t"<<p1.y<<endl;
-    Point p2;
-    p2.x = px_mas[py_i_temp + px_i_temp * (Ny + 1) + 1];
-    p2.y = py_mas[py_i_temp + px_i_temp * (Ny + 1) +
-                  1]; // cout<<p2.x<<"\t"<<p2.y<<endl;
-    Point p3;
-    p3.x = px_mas[py_i_temp + px_i_temp * (Ny + 1) + Ny + 2];
-    p3.y = py_mas[py_i_temp + px_i_temp * (Ny + 1) + Ny +
-                  2]; // cout<<p3.x<<"\t"<<p3.y<<endl;
-    Point p4;
-    p4.x = px_mas[py_i_temp + px_i_temp * (Ny + 1) + Ny + 1];
-    p4.y = py_mas[py_i_temp + px_i_temp * (Ny + 1) + Ny +
-                  1]; // cout<<p4.x<<"\t"<<p4.y<<endl;
+    Point p1 = p_grid[py_i_temp + px_i_temp * (Ny + 1)];
+    Point p2 = p_grid[py_i_temp + px_i_temp * (Ny + 1) + 1];
+    Point p3 = p_grid[py_i_temp + px_i_temp * (Ny + 1) + Ny + 2];
+    Point p4 = p_grid[py_i_temp + px_i_temp * (Ny + 1) + Ny + 1];
 
     /*
     определяем, где находится точка по отношению к диагонали клетки,
@@ -242,19 +227,19 @@ double getWer(double px, double py, double * px_mas, double * py_mas,
     * Выражение, интеграл от которого берется методом Симпсона
     *
 */
-double simpson_function(double psi, double px, double py, const Params & params) {
+double simpson_function(double psi, Point p, const Params & params) {
     bool flag = false;
     double result = 0.0;
 
     double p1max = pmax(psi, params);
-    double energy_value = energy(px, py, params) - params.beta;
+    double energy_value = energy(p, params) - params.beta;
 
-    double p = apply_Newton_psi_energy(psi, flag, energy_value, p1max, params);
+    double p1 = apply_Newton_psi_energy(psi, flag, energy_value, p1max, params);
 
     if (!flag)
         result = 0;
     else
-        result = p / (fabs(d_energy_psi(p, psi, params)));
+        result = p1 / (fabs(d_energy_psi(p1, psi, params)));
 
     return result;
 }
@@ -264,7 +249,7 @@ double simpson_function(double psi, double px, double py, const Params & params)
     * Реализация метода Симпсона
     *
 */
-double simpson(double px, double py, const Params & params) {
+double simpson(Point p, const Params & params) {
     double result = 0.0, a = 0, b = 2 * M_PI;
     double h = (b - a) / ((double) params.Simson_n);
 
@@ -273,9 +258,9 @@ double simpson(double px, double py, const Params & params) {
         double psi_2 = a + h * i;
         double psi_3 = a + h * (i + 1);
 
-        result += simpson_function(psi_1, px, py, params) +
-                  4 * simpson_function(psi_2, px, py, params) +
-                  simpson_function(psi_3, px, py, params);
+        result += simpson_function(psi_1, p, params) +
+                  4 * simpson_function(psi_2, p, params) +
+                  simpson_function(psi_3, p, params);
     }
 
     return result * h / 3;
@@ -286,12 +271,12 @@ double simpson(double px, double py, const Params & params) {
     * Собственно вычисление вероятности рассеяния
     *
 */
-void full_probability_psi(double * px_mas, double * py_mas, double * res_mas,
+void full_probability_psi(Point * p_grid, double * res_mas,
                           const Params & params) {
     omp_set_num_threads(params.num_threads_openmp);
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int i = 0; i < (params.Nx + 1) * (params.Ny + 1); i++) {
-        res_mas[i] = simpson(px_mas[i], py_mas[i], params);
+        res_mas[i] = simpson(p_grid[i], params);
         // printf("%d \t %f \t %f \t %f\n", i, px_mas[i], py_mas[i],
         // res_mas[i]);
     };

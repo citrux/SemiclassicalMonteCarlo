@@ -48,8 +48,7 @@ double apply_Newton_psi_energy(double psi, bool & flag, double energy_value,
     * points - массив значений импульса - точек сетки
     * Wer - массив значений вероятности, посчитанной на узлах выбранной сетки
 */
-double getWer(double px, double py, double * px_mas, double * py_mas,
-              double * Wer, const Params & params);
+double get_probability(Point p, Point * p_grid, double * Wer, const Params & params);
 
 /*
     *
@@ -70,7 +69,7 @@ double simpson(double px, double py, const Params & params);
     * Собственно вычисление вероятности рассеяния
     *
 */
-void full_probability_psi(double * px_mas, double * py_mas, double * res_mas,
+void full_probability_psi(Point * p_grid, double * res_mas,
                           const Params & params);
 
 double distrib_function(double p, double psi, const Params & params);

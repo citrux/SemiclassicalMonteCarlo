@@ -11,6 +11,64 @@ struct Point {
     double x;
     double y;
 };
+
+struct vec2 {
+    double x;
+    double y;
+};
+
+inline vec2 operator-(vec2 v) {
+    return {-v.x, -v.y};
+}
+
+inline vec2 operator+(vec2 a, vec2 b) {
+    return {a.x + b.x, a.y + b.y};
+}
+
+inline vec2 operator-(vec2 a, vec2 b) {
+    return a + (-b);
+}
+
+inline vec2 operator*(vec2 v, double scale) {
+    return {scale * v.x, scale * v.y};
+}
+
+inline vec2 operator*(double scale, vec2 v) {
+    return v * scale;
+}
+
+inline vec2 operator/(vec2 v, double scale) {
+    return v * (1./scale);
+}
+
+inline double dot(vec2 a, vec2 b) {
+    return a.x * b.x + a.y * b.y;
+}
+
+inline double cross(vec2 a, vec2 b) {
+    return a.x * b.y - a.y * b.x;
+}
+
+inline double len(vec2 v) {
+    return sqrt(dot(v,v));
+}
+
+inline vec2 ort(vec2 v) {
+    return v / len(v);
+}
+
+inline vec2 operator-(Point end, Point start) {
+    return {end.x - start.x, end.y - start.y};
+}
+
+inline Point operator+(Point start, vec2 shift) {
+    return {start.x + shift.x, start.y + shift.y};
+}
+
+inline Point operator-(Point start, vec2 shift) {
+    return start + (-shift);
+}
+
 /*
     *
     * Структура, хранящая параметры задачи
@@ -50,12 +108,9 @@ struct Params {
     int Ny;
     double px_max; // максимальное значение компонент квазиимпульса
     double py_max;
-    double Ax; // координаты вершин параллелограмма, ограничивающего
-    double Ay; // первую зону Бриллюэна
-    double Bx;
-    double By;
-    double Dx;
-    double Dy;
+    Point A; // координаты вершин параллелограмма, ограничивающего
+    Point B; // первую зону Бриллюэна
+    Point D;
 
     double Newton_abs_error; // абсолютная ошибка вычисления корня уравнения при
     // использовании метода Ньютона
@@ -115,7 +170,7 @@ void set_init_params(Params & params);
     * Выражение для энергетического спектра (в декартовых координатах)
     *
 */
-double energy(double px, double py, const Params & params);
+double energy(Point p, const Params & params);
 /*
     *
     * Выражение для энергетического спектра (в полярных координатах)
@@ -134,16 +189,16 @@ double d_energy_psi(double p, double psi, const Params & params);
     * Компоненты скорости
     *
 */
-double vx_fun(double px, double py, const Params & params);
-double vy_fun(double px, double py, const Params & params);
+double vx_fun(Point p, const Params & params);
+double vy_fun(Point p, const Params & params);
 
 /*
     *
     * Правые части уравнений движения
     *
 */
-double right_x(double px, double py, double t, const Params & params);
-double right_y(double px, double py, double t, const Params & params);
+double right_x(Point p, double t, const Params & params);
+double right_y(Point p, double t, const Params & params);
 
 /*
     *
@@ -157,7 +212,7 @@ double pmax(double psi, const Params & params);
     * Функция, приводящая квазиимпульс к первой зоне Бриллюэна
     *
 */
-Point ToFirstBand(Point p0, const Params & params);
+Point to_first_bz(Point p, const Params & params);
 
 /*
     *
@@ -171,4 +226,4 @@ Point point_k_m(int k, int m, const Params & params);
     * Массив координат точек в импульсном пространстве
     *
 */
-void make_grid(double * px_mas, double * py_mas, const Params & params);
+void make_grid(Point * p_grid, const Params & params);

@@ -5,9 +5,9 @@
 #include <time.h>
 #include "find_probability.h"
 using namespace std;
-void array_from_file(const string & filename, double * px_mas, double * py_mas,
+void array_from_file(const string & filename, Point * p_grid,
                      double * Wer, const Params & params);
-void array_to_file(const string & filename, double * px_mas, double * py_mas,
+void array_to_file(const string & filename, Point * p_grid,
                    double * Wer, const Params & params);
 void write_logs(const string & filename_base, double var_value, double * px_log,
                 double * py_log, int num_logs, const Params & params);
