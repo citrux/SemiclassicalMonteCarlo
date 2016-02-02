@@ -99,9 +99,8 @@ int main() {
     // график
     {
         var_value_graphic(graphic.num_var, var_mas[i], params);
-        result_one_point =
-            one_graphic_point(params, beta, p_grid, WerOpt, WerAc,
-                              var_mas[i], "");
+        result_one_point = one_graphic_point(params, beta, p_grid, WerOpt,
+                                             WerAc, var_mas[i], "");
         result_value_mas_x[i] = result_one_point.result_value_mas_x;
         result_value_mas_y[i] = result_one_point.result_value_mas_y;
         std_values_mas_x[i] = result_one_point.std_values_mas_x;
@@ -111,7 +110,7 @@ int main() {
         result_nAc[i] = result_one_point.result_nAc;
     };
     total_time = time(NULL) - total_time;
-    results_to_file(prob.filename_res, var_mas_count, var_mas, result_value_mas_x,
-                    result_value_mas_y, std_values_mas_x, std_values_mas_y,
-                    result_av_time, result_nOpt, result_nAc);
+    results_to_file(prob.filename_res, var_mas_count, var_mas,
+                    result_value_mas_x, result_value_mas_y, std_values_mas_x,
+                    std_values_mas_y, result_av_time, result_nOpt, result_nAc);
 }

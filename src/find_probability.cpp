@@ -73,7 +73,6 @@ double apply_Newton_psi_energy(double psi, bool & flag, double energy_value,
     double step = pmax / params.Newton_n_points;
     double lb, rb;
 
-
     for (int i = 0; i < params.Newton_n_points && !flag; i++) {
         // если на интервале от mas_py1[i] до mas_py1[i+1] функция
         // eps(p1)-energy_value меняет знак,
@@ -106,7 +105,8 @@ double apply_Newton_psi_energy(double psi, bool & flag, double energy_value,
     * points - массив значений импульса - точек сетки
     * Wer - массив значений вероятности, посчитанной на узлах выбранной сетки
 */
-double get_probability(Point p, Point * p_grid, double * Wer, const Params & params) {
+double get_probability(Point p, Point * p_grid, double * Wer,
+                       const Params & params) {
     double Ax = params.A.x;
     double Ay = params.A.y;
     double Bx = params.B.x;
@@ -130,7 +130,8 @@ double get_probability(Point p, Point * p_grid, double * Wer, const Params & par
     int px_i_temp = (int) floor((K1x - Ax) / stepAD);
 
     // !!! костыль !!!
-    if (px_i_temp < 0) px_i_temp = 0;
+    if (px_i_temp < 0)
+        px_i_temp = 0;
 
     double stepAB = (Bx - Ax) / Ny;
     int py_i_temp = (int) floor((M1x - Ax) / stepAB);
@@ -274,7 +275,7 @@ double simpson(Point p, const Params & params) {
 void full_probability_psi(Point * p_grid, double * res_mas,
                           const Params & params) {
     omp_set_num_threads(params.num_threads_openmp);
-    #pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < (params.Nx + 1) * (params.Ny + 1); i++) {
         res_mas[i] = simpson(p_grid[i], params);
         // printf("%d \t %f \t %f \t %f\n", i, px_mas[i], py_mas[i],

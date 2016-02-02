@@ -28,12 +28,12 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
                Params * params, double beta, unsigned int rand_init_value,
                int idx,
 
-               Point * p_grid, double * res_ac,
-               double * res_opt, double * px_log, double * py_log, int num_logs
+               Point * p_grid, double * res_ac, double * res_opt,
+               double * px_log, double * py_log, int num_logs
                /*int *mas_ac_opt, double *mas_t, int *mas_iCount, int n_step*/
                );
 
 Result_one_point one_graphic_point(const Params & params, double beta,
-                                   Point * p_grid,
-                                   double * WerOpt, double * WerAc,
-                                   double var_value, const string & filename_base);
+                                   Point * p_grid, double * WerOpt,
+                                   double * WerAc, double var_value,
+                                   const string & filename_base);

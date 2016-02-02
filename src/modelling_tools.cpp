@@ -27,10 +27,14 @@ void runge(Point & p, double t, const Params & params) {
 
     kx1 = right_x({px_1, py_1}, t, params);
     ky1 = right_y({px_1, py_1}, t, params);
-    kx2 = right_x({px_1 + dt / 2 * kx1, py_1 + dt / 2 * ky1}, t + dt / 2, params);
-    ky2 = right_y({px_1 + dt / 2 * kx1, py_1 + dt / 2 * ky1}, t + dt / 2, params);
-    kx3 = right_x({px_1 + dt / 2 * kx2, py_1 + dt / 2 * ky2}, t + dt / 2, params);
-    ky3 = right_y({px_1 + dt / 2 * kx2, py_1 + dt / 2 * ky2}, t + dt / 2, params);
+    kx2 =
+        right_x({px_1 + dt / 2 * kx1, py_1 + dt / 2 * ky1}, t + dt / 2, params);
+    ky2 =
+        right_y({px_1 + dt / 2 * kx1, py_1 + dt / 2 * ky1}, t + dt / 2, params);
+    kx3 =
+        right_x({px_1 + dt / 2 * kx2, py_1 + dt / 2 * ky2}, t + dt / 2, params);
+    ky3 =
+        right_y({px_1 + dt / 2 * kx2, py_1 + dt / 2 * ky2}, t + dt / 2, params);
     kx4 = right_x({px_1 + dt * kx3, py_1 + dt * ky3}, t + dt, params);
     ky4 = right_y({px_1 + dt * kx3, py_1 + dt * ky3}, t + dt, params);
 
@@ -96,9 +100,8 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
                const Params & params, double beta, unsigned int rand_init_value,
                int idx,
 
-               Point * p_grid, double * res_ac,
-               double * res_opt, double * px_log, double * py_log,
-               int num_logs) {
+               Point * p_grid, double * res_ac, double * res_opt,
+               double * px_log, double * py_log, int num_logs) {
     // logger(LOG_INFO, "Start jobKernel\n");
     double * px_log_local = new double[num_logs];
     double * py_log_local = new double[num_logs];
@@ -158,10 +161,8 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
 
         // вычисляем вероятности перехода в результате рассеяния на акустических
         // и оптических фононах
-        wla = params.wla_max *
-              get_probability(p, p_grid, res_ac, params);
-        wlo = params.wlo_max *
-              get_probability(p, p_grid, res_opt, params);
+        wla = params.wla_max * get_probability(p, p_grid, res_ac, params);
+        wlo = params.wlo_max * get_probability(p, p_grid, res_opt, params);
 
         r = -log(random_uniform(x1, y1, z1, w1));
         wsum += (wlo + wla) * params.dt;
@@ -172,8 +173,8 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
             r = random_uniform(x1, y1, z1, w1);
             if (wla > r * (wlo + wla)) {
                 nAc++; // наращиваем счетчик рассеяний на акустических фононах
-                energy_value = energy_psi(sqrt(px * px + py * py),
-                                          atan2(py, px), params);
+                energy_value =
+                    energy_psi(sqrt(px * px + py * py), atan2(py, px), params);
                 flag = false;
                 iCount = 0;
                 while (!flag && iCount < 15) {
@@ -245,10 +246,11 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
 }
 
 Result_one_point one_graphic_point(const Params & params, double beta,
-                                   Point * p_grid,
-                                   double * WerOpt, double * WerAc,
-                                   double var_value, const string & filename_base) {
-    logger(LOG_INFO, "Calculate current density for " + to_string(var_value) +"...");
+                                   Point * p_grid, double * WerOpt,
+                                   double * WerAc, double var_value,
+                                   const string & filename_base) {
+    logger(LOG_INFO,
+           "Calculate current density for " + to_string(var_value) + "...");
 
     time_t time_load = time(NULL);
 
@@ -281,11 +283,10 @@ Result_one_point one_graphic_point(const Params & params, double beta,
     };
 
     omp_set_num_threads(params.num_threads_openmp);
-    #pragma omp parallel for
+#pragma omp parallel for
     for (int j = 0; j < params.n_part; j++) {
-        jobKernel(values_x, values_y, av_time, nAc, nOpt, params, beta,
-                  seed[j], j, p_grid, WerAc, WerOpt, px_log, py_log,
-                  num_logs);
+        jobKernel(values_x, values_y, av_time, nAc, nOpt, params, beta, seed[j],
+                  j, p_grid, WerAc, WerOpt, px_log, py_log, num_logs);
     };
 
     // Записываем значения компонент квазиимпульса в каждый момент времени для
@@ -316,6 +317,7 @@ Result_one_point one_graphic_point(const Params & params, double beta,
     delete[] nOpt;
     delete[] nAc;
 
-    logger(LOG_OK, "\t[DONE in " + to_string(time(NULL) - time_load) + " sec]\n");
+    logger(LOG_OK,
+           "\t[DONE in " + to_string(time(NULL) - time_load) + " sec]\n");
     return result;
 }

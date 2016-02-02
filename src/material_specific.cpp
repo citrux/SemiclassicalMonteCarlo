@@ -46,9 +46,7 @@ double vy_fun(Point p, const Params & params) {
     *
 */
 
-double right_x(Point p, double t, const Params & params) {
-    return params.Exc;
-}
+double right_x(Point p, double t, const Params & params) { return params.Exc; }
 
 double right_y(Point p, double t, const Params & params) {
     return params.Ey1 * cos(t * params.wy1) +
@@ -64,7 +62,8 @@ double pmax(double psi, const Params & params) {
     // требуется найти пересечение луча с границей четырёхугольника
     Point C = params.B + (params.D - params.A);
     Point O = {0, 0};
-    // Считаем расстояние от начала координат до точки пересечения луча с отрезками
+    // Считаем расстояние от начала координат до точки пересечения луча с
+    // отрезками
     vec2 OA = params.A - O;
     vec2 OB = params.B - O;
     vec2 OC = C - O;
@@ -74,11 +73,11 @@ double pmax(double psi, const Params & params) {
     double res = -1;
 
     vec2 vs[5] = {OA, OB, OC, OD, OA};
-    for (int i = 0; i < 5; ++i)
-    {
-        double p = cross(vs[i], vs[i+1]) / cross(l, vs[i+1] - vs[i]);
+    for (int i = 0; i < 5; ++i) {
+        double p = cross(vs[i], vs[i + 1]) / cross(l, vs[i + 1] - vs[i]);
 
-        if (p < 0) continue;
+        if (p < 0)
+            continue;
 
         if (res < 0 || p < res)
             res = p;

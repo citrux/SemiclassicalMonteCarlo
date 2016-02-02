@@ -48,14 +48,16 @@ double apply_Newton_psi_energy(double psi, bool & flag, double energy_value,
     * points - массив значений импульса - точек сетки
     * Wer - массив значений вероятности, посчитанной на узлах выбранной сетки
 */
-double get_probability(Point p, Point * p_grid, double * Wer, const Params & params);
+double get_probability(Point p, Point * p_grid, double * Wer,
+                       const Params & params);
 
 /*
     *
     * Выражение, интеграл от которого берется методом Симпсона
     *
 */
-double simpson_function(double psi, double px, double py, const Params & params);
+double simpson_function(double psi, double px, double py,
+                        const Params & params);
 
 /*
     *
