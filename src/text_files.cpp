@@ -18,7 +18,7 @@ void results_to_file(const string & filename, int var_mas_count,
     /*f << "Exc: " << params.Exc << "; Eyc: " << params.Eyc << "; wlo_max: " <<
     params.wlo_max << "; wla_max: " << params.wla_max << "; low: " << low << ";
     high: " << high << "; step: " << step << "; num_threads: " <<
-    params.thread << endl;
+    params.model.threads << endl;
     f << "Time info: " << total_time << endl;*/
     f << "#  E_y\tj_x\tj_y\tsigma_x\tsigma_y\ttau\tn_opt\tn_ac" << endl;
     for (int i = 0; i < var_mas_count; i++) {
@@ -53,7 +53,6 @@ vec2 to_vec2(const string & str) {
     return v;
 }
 
-
 void load_config(const string & filename, Params & params) {
 
     logger(LOG_INFO, "load config from '" + filename + "'...\t");
@@ -79,24 +78,28 @@ void load_config(const string & filename, Params & params) {
     params.fields.E0 = to_vec2(reader.Get("fields", "E0", "0 0"));
     params.fields.E1 = to_vec2(reader.Get("fields", "E1", "0 0"));
     params.fields.E2 = to_vec2(reader.Get("fields", "E2", "0 0"));
-    params.fields.H = reader.GetReal("fields", "H",0);
-    params.fields.omega1 = reader.GetReal("fields", "omega1",0);
-    params.fields.omega2 = reader.GetReal("fields", "omega2",0);
-    params.fields.phi1 = reader.GetReal("fields", "phi1",0);
-    params.fields.phi2 = reader.GetReal("fields", "phi2",0);
-    params.fields.phi = reader.GetReal("fields", "phi",0);
+    params.fields.H = reader.GetReal("fields", "H", 0);
+    params.fields.omega1 = reader.GetReal("fields", "omega1", 0);
+    params.fields.omega2 = reader.GetReal("fields", "omega2", 0);
+    params.fields.phi1 = reader.GetReal("fields", "phi1", 0);
+    params.fields.phi2 = reader.GetReal("fields", "phi2", 0);
+    params.fields.phi = reader.GetReal("fields", "phi", 0);
 
     params.bzone.A = to_point(reader.Get("bzone", "A", "0 0"));
     params.bzone.B = to_point(reader.Get("bzone", "B", "0 0"));
     params.bzone.D = to_point(reader.Get("bzone", "D", "0 0"));
     params.bzone.C = params.bzone.B + (params.bzone.D - params.bzone.A);
 
-    params.probability.p_error = reader.GetReal("probability", "p_error",0);
-    params.probability.p_points = reader.GetInteger("probability", "p_points",0);
-    params.probability.n_integral = reader.GetInteger("probability", "n_integral",0);
-    params.probability.e_points = reader.GetInteger("probability", "e_points",0);
+    params.probability.p_error = reader.GetReal("probability", "p_error", 0);
+    params.probability.p_points =
+        reader.GetInteger("probability", "p_points", 0);
+    params.probability.n_integral =
+        reader.GetInteger("probability", "n_integral", 0);
+    params.probability.e_points =
+        reader.GetInteger("probability", "e_points", 0);
     params.probability.optical = new double[params.probability.e_points];
     params.probability.acoustical = new double[params.probability.e_points];
+    params.probability.energy = new double[params.probability.e_points];
 
     params.model.dt = reader.GetReal("model", "dt", 1e-4);
     params.model.all_time = reader.GetReal("model", "all_time", 0);
@@ -108,12 +111,12 @@ void load_config(const string & filename, Params & params) {
     params.plot.step = reader.GetReal("plotting", "step", 0);
     params.plot.num_var = reader.GetInteger("plotting", "num_var", -1);
 
-
     logger(LOG_OK, "[DONE]\n");
 }
 
 int get_var_mas_count(const Params & params) {
-    double low = params.plot.low, high = params.plot.high, step = params.plot.step;
+    double low = params.plot.low, high = params.plot.high,
+           step = params.plot.step;
     int var_mas_count = (fabs(high - low) / step) + 1;
     return var_mas_count;
 }

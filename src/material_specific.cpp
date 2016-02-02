@@ -1,13 +1,13 @@
 #include "material_specific.h"
 #include "logger.h"
+#include <string>
+using namespace std;
 /*
     *
     * Выражение для энергетического спектра (в декартовых координатах)
     *
 */
-double energy(Point p) {
-    return (1 - cos(p.x) * cos(p.y));
-}
+double energy(Point p) { return (1 - cos(p.x) * cos(p.y)); }
 /*
     *
     * Выражение для энергетического спектра (в полярных координатах)
@@ -32,9 +32,7 @@ double d_energy_psi(double p, double psi) {
     * Компоненты скорости
     *
 */
-vec2 velocity(Point p) {
-    return {sin(p.x) * cos(p.y), cos(p.x) * sin(p.y)};
-}
+vec2 velocity(Point p) { return {sin(p.x) * cos(p.y), cos(p.x) * sin(p.y)}; }
 
 /*
     *
@@ -42,7 +40,8 @@ vec2 velocity(Point p) {
     *
 */
 vec2 forces(Point p, double t, const Params & params) {
-    double phi = params.fields.phi, phi1 = params.fields.phi1, phi2 = params.fields.phi2;
+    double phi = params.fields.phi, phi1 = params.fields.phi1,
+           phi2 = params.fields.phi2;
     double omega1 = params.fields.omega1, omega2 = params.fields.omega2;
     vec2 E0 = params.fields.E0;
     vec2 E1 = {params.fields.E1.x * cos(omega1 * t),
@@ -72,7 +71,7 @@ double pmax(double psi, const Params & params) {
     double res = -1;
 
     vec2 vs[5] = {OA, OB, OC, OD, OA};
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 4; ++i) {
         double p = cross(vs[i], vs[i + 1]) / cross(l, vs[i + 1] - vs[i]);
 
         if (p < 0)

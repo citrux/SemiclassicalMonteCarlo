@@ -13,34 +13,46 @@ struct vec2 {
     double y;
 };
 
-inline vec2 operator-(vec2 v) { return {-v.x, -v.y}; }
+inline vec2 operator-(const vec2 & v) { return {-v.x, -v.y}; }
 
-inline vec2 operator+(vec2 a, vec2 b) { return {a.x + b.x, a.y + b.y}; }
+inline vec2 operator+(const vec2 & a, const vec2 & b) {
+    return {a.x + b.x, a.y + b.y};
+}
 
-inline vec2 operator-(vec2 a, vec2 b) { return a + (-b); }
+inline vec2 operator-(const vec2 & a, const vec2 & b) { return a + (-b); }
 
-inline vec2 operator*(vec2 v, double scale) {
+inline vec2 operator*(const vec2 v, double scale) {
     return {scale * v.x, scale * v.y};
 }
 
-inline vec2 operator*(double scale, vec2 v) { return v * scale; }
+inline vec2 operator*(const double scale, const vec2 & v) { return v * scale; }
 
-inline vec2 operator/(vec2 v, double scale) { return v * (1. / scale); }
+inline vec2 operator/(const vec2 & v, double scale) { return v * (1. / scale); }
 
-inline double dot(vec2 a, vec2 b) { return a.x * b.x + a.y * b.y; }
+inline double dot(const vec2 & a, const vec2 & b) {
+    return a.x * b.x + a.y * b.y;
+}
 
-inline double cross(vec2 a, vec2 b) { return a.x * b.y - a.y * b.x; }
+inline double cross(const vec2 & a, const vec2 & b) {
+    return a.x * b.y - a.y * b.x;
+}
 
-inline double len(vec2 v) { return sqrt(dot(v, v)); }
+inline double len(const vec2 & v) { return sqrt(dot(v, v)); }
 
-inline vec2 ort(vec2 v) { return v / len(v); }
+inline vec2 ort(const vec2 & v) { return v / len(v); }
 
-inline vec2 operator-(Point end, Point start) {
+inline vec2 operator-(const Point & end, const Point & start) {
     return {end.x - start.x, end.y - start.y};
 }
 
-inline Point operator+(Point start, vec2 shift) {
-    return {start.x + shift.x, start.y + shift.y};
+inline Point & operator+=(Point & start, const vec2 & shift) {
+    start.x += shift.x;
+    start.y += shift.y;
+    return start;
 }
-
-inline Point operator-(Point start, vec2 shift) { return start + (-shift); }
+inline Point operator+(Point start, const vec2 & shift) {
+    return start += shift;
+}
+inline Point operator-(Point start, const vec2 & shift) {
+    return start += (-shift);
+}

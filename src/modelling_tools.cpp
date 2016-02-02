@@ -21,7 +21,7 @@ w1 = 88675123;
 
 void runge(Point & p, double t, const Params & params) {
     vec2 k1, k2, k3, k4;
-    double dt = params.dt;
+    double dt = params.model.dt;
 
     k1 = forces(p, t, params);
     k2 = forces(p + dt / 2 * k1, t + dt / 2, params);
@@ -42,7 +42,7 @@ Point init_dist(unsigned int & x1, unsigned int & y1, unsigned int & z1,
         psi = 2 * M_PI * random_uniform(x1, y1, z1, w1);
         p = pmax(psi, params) * random_uniform(x1, y1, z1, w1);
         z = random_uniform(x1, y1, z1, w1);
-        f = 1 / (params.Anorm) * distrib_function(p, psi, params);
+        f = distrib_function(p, psi, params);
     } while (z >= f);
     point.x = p * cos(psi);
     point.y = p * sin(psi);
@@ -102,10 +102,9 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
     bool flag;
     int iCount;
     double energy_value;
-    double p_max, px, py;
+    double p_max;
 
-    double vx = 0.0;
-    double vy = 0.0;
+    vec2 v;
     double value_x = 0.0;
     double value_y = 0.0;
 
@@ -125,43 +124,34 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
     int nAc = 0;
     int nOpt = 0;
 
-    double beta_opt = params.beta, beta_ac = 0.0;
+    double beta_opt = params.phonons.beta, beta_ac = 0.0;
 
     int t_num = 0;
 
-    while (t < params.all_time) {
-        vx = vx_fun(p, params); // вычисляем значения компонент скорости
-        vy = vy_fun(p, params);
+    while (t < params.model.all_time) {
+        v = velocity(p);
 
-        value_x += vx * params.dt;
-        value_y += vy * params.dt;
+        value_x += v.x * params.model.dt;
+        value_y += v.y * params.model.dt;
 
         runge(p, t, params); // решаем уравнения движения
 
         /* приводим импульс к зоне */
         p = to_first_bz(p, params);
-        px = p.x;
-        py = p.y;
-        px_log_local[t_num] = px;
-        py_log_local[t_num] = py;
-        t += params.dt;
-
-        // вычисляем вероятности перехода в результате рассеяния на акустических
-        // и оптических фононах
-        wla = params.wla_max * get_probability(p, p_grid, res_ac, params);
-        wlo = params.wlo_max * get_probability(p, p_grid, res_opt, params);
+        px_log_local[t_num] = p.x;
+        py_log_local[t_num] = p.y;
+        t += params.model.dt;
 
         r = -log(random_uniform(x1, y1, z1, w1));
-        wsum += (wlo + wla) * params.dt;
+        wsum += get_probability(p, params) * params.model.dt;
 
         if (wsum > r) {
             n0++; // наращиваем счетчик общего числа рассеяний
             wsum = 0.0;
             r = random_uniform(x1, y1, z1, w1);
-            if (wla > r * (wlo + wla)) {
+            if (wla > r * wsum) {
                 nAc++; // наращиваем счетчик рассеяний на акустических фононах
-                energy_value =
-                    energy_psi(sqrt(px * px + py * py), atan2(py, px), params);
+                energy_value = energy(p);
                 flag = false;
                 iCount = 0;
                 while (!flag && iCount < 15) {
@@ -172,25 +162,19 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
                     p_max = pmax(psi, params); // максимальное значение
                     // модуля квазиимпульса
                     // в направлении угла psi
-                    p1 = apply_Newton_psi_energy(psi, flag, energy_value, p_max,
-                                                 params);
+                    p = momentums_with_energy_in_direction(psi, energy_value,
+                                                           params)[0];
                     // если p1 существует, то flag = true, и мы правильно
                     // подобрали угол рассеяния, поэтому выходим из цикла
 
                     // если за 15 попыток не нашли решение, выходим из цикла
                     iCount++;
                 }
-                px = p1 * cos(psi); // вычисляем компоненты импульса
-                py = p1 * sin(psi); // вычисляем компоненты импульса
             } else {
-                if ((wlo > 0.0001) &&
-                    (energy_psi(sqrt(px * px + py * py), atan2(py, px),
-                                params) >= beta_opt)) {
+                if ((wlo > 0.0001) && (energy(p) >= beta_opt)) {
                     nOpt++; // наращиваем счетчик рассеяний на оптических
                             // фононах
-                    energy_value = energy_psi(sqrt(px * px + py * py),
-                                              atan2(py, px), params) -
-                                   beta_opt;
+                    energy_value = energy(p) - beta_opt;
                     flag = false;
                     iCount = 0;
 
@@ -203,16 +187,14 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
                         p_max = pmax(psi, params); // максимальное значение
                         // модуля квазиимпульса
                         // в направлении угла psi
-                        p1 = apply_Newton_psi_energy(psi, flag, energy_value,
-                                                     p_max, params);
+                        p = momentums_with_energy_in_direction(
+                            psi, energy_value, params)[0];
                         // если p1 существует, то flag = true, и мы правильно
                         // подобрали угол рассеяния, поэтому выходим из цикла
 
                         // если за 15 попыток не нашли решение, выходим из цикла
                         iCount++;
                     }
-                    px = p1 * cos(psi); // вычисляем компоненты импульса
-                    py = p1 * sin(psi); // вычисляем компоненты импульса
                 }
             }
         }
@@ -233,45 +215,48 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
 }
 
 Result_one_point one_plot_point(const Params & params, double beta,
-                                   Point * p_grid, double * WerOpt,
-                                   double * WerAc, double var_value,
-                                   const string & filename_base) {
+                                Point * p_grid, double * WerOpt, double * WerAc,
+                                double var_value,
+                                const string & filename_base) {
     logger(LOG_INFO,
            "Calculate current density for " + to_string(var_value) + "...");
 
     time_t time_load = time(NULL);
 
-    double * values_x = new double[params.particles]; // плотность постоянного
+    double * values_x =
+        new double[params.model.particles]; // плотность постоянного
     // тока вдоль Ох (до
     // усреднения по ансамблю)
-    double * values_y = new double[params.particles]; // плотность постоянного
+    double * values_y =
+        new double[params.model.particles]; // плотность постоянного
     // тока вдоль Оу (до
     // усреднения по ансамблю)
-    double * av_time = new double[params.particles]; // среднее время релаксации
+    double * av_time =
+        new double[params.model.particles]; // среднее время релаксации
     // (до усреднения по
     // ансамблю)
     unsigned int * nOpt =
-        new unsigned int[params.particles]; // количество рассеяний на
+        new unsigned int[params.model.particles]; // количество рассеяний на
     // оптических фононах
     unsigned int * nAc =
-        new unsigned int[params.particles]; // количество рассеяний на
+        new unsigned int[params.model.particles]; // количество рассеяний на
     // акустических фононах
 
     //Массивы-логи
-    int num_logs = (int) (params.all_time / (params.dt)) + 1;
-    double * px_log = new double[num_logs * (params.particles)];
-    double * py_log = new double[num_logs * (params.particles)];
+    int num_logs = (int) (params.model.all_time / (params.model.dt)) + 1;
+    double * px_log = new double[num_logs * (params.model.particles)];
+    double * py_log = new double[num_logs * (params.model.particles)];
 
     // Инициализируем генератор случайных чисел
     srand(time(NULL));
-    unsigned int * seed = new unsigned int[params.particles];
-    for (int j = 0; j < params.particles; j++) {
+    unsigned int * seed = new unsigned int[params.model.particles];
+    for (int j = 0; j < params.model.particles; j++) {
         seed[j] = ((unsigned int) rand()) % 100000000 + 100000000;
     };
 
-    omp_set_num_threads(params.thread);
+    omp_set_num_threads(params.model.threads);
 #pragma omp parallel for
-    for (int j = 0; j < params.particles; j++) {
+    for (int j = 0; j < params.model.particles; j++) {
         jobKernel(values_x, values_y, av_time, nAc, nOpt, params, beta, seed[j],
                   j, p_grid, WerAc, WerOpt, px_log, py_log, num_logs);
     };
@@ -284,13 +269,13 @@ Result_one_point one_plot_point(const Params & params, double beta,
 
     // Помещаем результат расчета для одной точки графика в структуру
     Result_one_point result;
-    result.result_value_mas_x = Mean(values_x, params.particles);
-    result.result_value_mas_y = Mean(values_y, params.particles);
-    result.std_values_mas_x = Std(values_x, params.particles);
-    result.std_values_mas_y = Std(values_y, params.particles);
-    result.result_av_time = Mean(av_time, params.particles);
-    result.result_nOpt = Mean(nOpt, params.particles);
-    result.result_nAc = Mean(nAc, params.particles);
+    result.result_value_mas_x = Mean(values_x, params.model.particles);
+    result.result_value_mas_y = Mean(values_y, params.model.particles);
+    result.std_values_mas_x = Std(values_x, params.model.particles);
+    result.std_values_mas_y = Std(values_y, params.model.particles);
+    result.result_av_time = Mean(av_time, params.model.particles);
+    result.result_nOpt = Mean(nOpt, params.model.particles);
+    result.result_nAc = Mean(nAc, params.model.particles);
 
     // Удаляем массивы - логи
     delete[] px_log;

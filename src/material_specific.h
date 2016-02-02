@@ -12,29 +12,17 @@ using std::string;
 struct Files {
     bool load; // если 1, загружаем значения вероятностей из
     // файлов, иначе - вычисляем
-    string filename_opt,
-           filename_ac,
-           filename_res;
+    string filename_opt, filename_ac, filename_res;
 };
 
 struct Phonons {
-    double beta,
-           wla_max,
-           wlo_max,
-           T;
+    double beta, wla_max, wlo_max, T;
 };
 
 struct Fields {
-    vec2 E0,
-         E1,
-         E2;
+    vec2 E0, E1, E2;
 
-    double H,
-           omega1,
-           omega2,
-           phi1,
-           phi2,
-           phi;
+    double H, omega1, omega2, phi1, phi2, phi;
 };
 
 struct Bzone {
@@ -42,22 +30,15 @@ struct Bzone {
 };
 
 struct Probability {
-    double p_error,
-           *acoustical,
-           *optical;
+    double p_error, *acoustical, *optical, *energy;
 
-    int p_points,
-        n_integral,
-        e_points;
+    int p_points, n_integral, e_points;
 };
 
 struct Model {
-    double dt,
-           all_time;
+    double dt, all_time;
 
-    int threads,
-        particles;
-
+    int threads, particles;
 };
 /*
     *
@@ -71,7 +52,6 @@ struct Plot {
                  // график
     int num_var; // Номер переменной, в зависимости от которой строим график
 };
-
 
 /*
     *
@@ -90,7 +70,6 @@ struct Params {
     Plot plot;
     Model model;
 };
-
 
 void set_init_params(Params & params);
 
@@ -126,7 +105,6 @@ vec2 velocity(Point p);
     *
 */
 vec2 forces(Point p, double t, const Params & params);
-
 
 /*
     *

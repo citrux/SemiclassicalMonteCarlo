@@ -34,6 +34,5 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
                );
 
 Result_one_point one_plot_point(const Params & params, double beta,
-                                   Point * p_grid, double * WerOpt,
-                                   double * WerAc, double var_value,
-                                   const string & filename_base);
+                                Point * p_grid, double * WerOpt, double * WerAc,
+                                double var_value, const string & filename_base);
