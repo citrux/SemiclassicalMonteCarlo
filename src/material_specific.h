@@ -1,53 +1,77 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <string>
+#include "linalg.h"
 using std::string;
+
 /*
     *
-    * Структура, хранящая компоненты импульса
+    * Структура, определяющая, загружаем или вычисляем вероятности рассеяния
     *
 */
-struct Point {
-    double x;
-    double y;
+struct Files {
+    bool load; // если 1, загружаем значения вероятностей из
+    // файлов, иначе - вычисляем
+    string filename_opt,
+           filename_ac,
+           filename_res;
 };
 
-struct vec2 {
-    double x;
-    double y;
+struct Phonons {
+    double beta,
+           wla_max,
+           wlo_max,
+           T;
 };
 
-inline vec2 operator-(vec2 v) { return {-v.x, -v.y}; }
+struct Fields {
+    vec2 E0,
+         E1,
+         E2;
 
-inline vec2 operator+(vec2 a, vec2 b) { return {a.x + b.x, a.y + b.y}; }
+    double H,
+           omega1,
+           omega2,
+           phi1,
+           phi2,
+           phi;
+};
 
-inline vec2 operator-(vec2 a, vec2 b) { return a + (-b); }
+struct Bzone {
+    Point A, B, C, D;
+};
 
-inline vec2 operator*(vec2 v, double scale) {
-    return {scale * v.x, scale * v.y};
-}
+struct Probability {
+    double p_error,
+           *acoustical,
+           *optical;
 
-inline vec2 operator*(double scale, vec2 v) { return v * scale; }
+    int p_points,
+        n_integral,
+        e_points;
+};
 
-inline vec2 operator/(vec2 v, double scale) { return v * (1. / scale); }
+struct Model {
+    double dt,
+           all_time;
 
-inline double dot(vec2 a, vec2 b) { return a.x * b.x + a.y * b.y; }
+    int threads,
+        particles;
 
-inline double cross(vec2 a, vec2 b) { return a.x * b.y - a.y * b.x; }
+};
+/*
+    *
+    * Структура, хранящая параметры построения графика
+    *
+*/
+struct Plot {
+    double low;  // Минимальное значение переменной, от которой строим график
+    double high; // Максимальное значение переменной, от которой строим график
+    double step; // Шаг изменения переменной, в зависимости от которой строим
+                 // график
+    int num_var; // Номер переменной, в зависимости от которой строим график
+};
 
-inline double len(vec2 v) { return sqrt(dot(v, v)); }
-
-inline vec2 ort(vec2 v) { return v / len(v); }
-
-inline vec2 operator-(Point end, Point start) {
-    return {end.x - start.x, end.y - start.y};
-}
-
-inline Point operator+(Point start, vec2 shift) {
-    return {start.x + shift.x, start.y + shift.y};
-}
-
-inline Point operator-(Point start, vec2 shift) { return start + (-shift); }
 
 /*
     *
@@ -55,93 +79,18 @@ inline Point operator-(Point start, vec2 shift) { return start + (-shift); }
     *
 */
 struct Params {
-    double beta;    // отношение энергии оптического фонона к ширине минизоны
-    double wla_max; // константа электрон-фононного взаимодействия (акустические
-                    // фононы)
-    double wlo_max; // константа электрон-фононного взаимодействия (оптические
-                    // фононы)
+    Files files;
 
-    double Exc; // постоянная составляющая электрического поля вдоль оси Ox
-    double Ex;  // амплитуда переменной составляющей электрического поля вдоль
-                // оси Ох
-    double Eyc; // постоянная составляющая электрического поля вдоль оси Oу
-    double Ey;  // амплитуда переменной составляющей электрического поля вдоль
-                // оси Оy
-    double H;   // напряженность магнитного поля, перпендикулярного к поверхности
-                // образца
-    double vx0; // коэффициент в выражении для компоненты скорости (1)
-    double vy0; // коэффициент в выражении для компоненты скорости (1)
-    double wx;  // частота электрического поля плоской волны, поляризованной
-                // вдоль оси Ох
-    double wy;  // частота электрического поля плоской волны, поляризованной
-                // вдоль оси Оу
-    double wy1;
-    double wy2;
-    double phi; // относительная фаза волны, поляризованной вдоль оси Оу, по
-                // сравнению с
-    // волной, поляризованной вдоль оси Ох
+    bool load; // загружать из файла или считать вероятности
 
-    double Ey1;
-    double Ey2;
-
-    int Nx; // количество точек, на которые разбивается первая зона Бриллюэна
-    int Ny;
-    double px_max; // максимальное значение компонент квазиимпульса
-    double py_max;
-    Point A; // координаты вершин параллелограмма, ограничивающего
-    Point B; // первую зону Бриллюэна
-    Point D;
-
-    double Newton_abs_error; // абсолютная ошибка вычисления корня уравнения при
-    // использовании метода Ньютона
-    int Newton_n_points; // количество элементов, на которое делится отрезок, на
-                         // котором ищем
-    // решение уравнения методом Ньютона
-
-    int Simson_n; // количество элементов, на которое разбивается область
-                  // [0..2*Pi]
-    // при интегрировании методом Симпсона
-
-    double
-        dt;          // шаг по времени при моделировании (важен для метода Рунге-Кутты)
-    double all_time; // время всего моделирования
-
-    int num_threads_openmp; // количество ядер, на которое распараллеливается
-    // расчет вероятности рассеяния
-    // и расчет среднего значения плотности тока
-    int n_part; // количество частиц n_part
-
-    double T; //Температура
-    double Anorm;
-
-    double max_prob;
+    Phonons phonons;
+    Probability probability;
+    Fields fields;
+    Bzone bzone;
+    Plot plot;
+    Model model;
 };
 
-/*
-    *
-    * Структура, определяющая, загружаем или вычисляем вероятности рассеяния
-    *
-*/
-struct Probability {
-    int flag_count_or_load; // если 1, загружаем значения вероятностей из
-    // файлов, иначе - вычисляем
-    string filename_opt;
-    string filename_ac;
-    string filename_res;
-};
-
-/*
-    *
-    * Структура, хранящая параметры построения графика
-    *
-*/
-struct Graphic {
-    double low;  // Минимальное значение переменной, от которой строим график
-    double high; // Максимальное значение переменной, от которой строим график
-    double step; // Шаг изменения переменной, в зависимости от которой строим
-                 // график
-    int num_var; // Номер переменной, в зависимости от которой строим график
-};
 
 void set_init_params(Params & params);
 
@@ -150,35 +99,34 @@ void set_init_params(Params & params);
     * Выражение для энергетического спектра (в декартовых координатах)
     *
 */
-double energy(Point p, const Params & params);
+double energy(Point p);
 /*
     *
     * Выражение для энергетического спектра (в полярных координатах)
     *
 */
-double energy_psi(double p, double psi, const Params & params);
+double energy_psi(double p, double psi);
 /*
     *
     * Производная энергии по модулю импульса (в полярных координатах)
     *
 */
-double d_energy_psi(double p, double psi, const Params & params);
+double d_energy_psi(double p, double psi);
 
 /*
     *
     * Компоненты скорости
     *
 */
-double vx_fun(Point p, const Params & params);
-double vy_fun(Point p, const Params & params);
+vec2 velocity(Point p);
 
 /*
     *
     * Правые части уравнений движения
     *
 */
-double right_x(Point p, double t, const Params & params);
-double right_y(Point p, double t, const Params & params);
+vec2 forces(Point p, double t, const Params & params);
+
 
 /*
     *

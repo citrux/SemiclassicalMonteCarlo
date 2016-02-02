@@ -5,30 +5,12 @@ using namespace std;
 int main() {
     // задаем параметры задачи
     Params params;
-    Graphic graphic;
-    Probability prob;
     string config = "config.ini";
 
     logger(LOG_INFO, "> Loading config\n");
-    load_config(config, params, graphic, prob);
-    double beta = params.beta;
+    load_config(config, params);
+
     Result_one_point result_one_point;
-
-    // задаем массивы, хранящие значения вероятности
-    Point * p_grid = new Point[(params.Nx + 1) * (params.Ny + 1)];
-
-    double * WerOpt =
-        new double[(params.Nx + 1) * (params.Ny + 1)]; // массив значений
-    // вероятности рассеяния
-    // на оптических фононах
-    double * WerAc =
-        new double[(params.Nx + 1) * (params.Ny + 1)]; // массив значений
-    // вероятности рассеяния
-    // на акустических
-    // фононах
-
-    // строим сетку
-    make_grid(p_grid, params);
 
     if (prob.flag_count_or_load == 1) // если 1, загружаем вероятности из файла
     {
@@ -66,9 +48,9 @@ int main() {
 
     // массив значений переменной, в зависимости от которой строим график
     // плотности тока
-    int var_mas_count = get_var_mas_count(graphic);
+    int var_mas_count = get_var_mas_count(params);
     double * var_mas = new double[var_mas_count];
-    set_var_mas(graphic, var_mas_count, var_mas);
+    set_var_mas(plot, var_mas_count, var_mas);
 
     double * result_value_mas_x =
         new double[var_mas_count]; // плотность тока jx, усредненная по времени
@@ -98,8 +80,8 @@ int main() {
     // зависимости от которой строим
     // график
     {
-        var_value_graphic(graphic.num_var, var_mas[i], params);
-        result_one_point = one_graphic_point(params, beta, p_grid, WerOpt,
+        var_value_plot(plot.num_var, var_mas[i], params);
+        result_one_point = one_plot_point(params, beta, p_grid, WerOpt,
                                              WerAc, var_mas[i], "");
         result_value_mas_x[i] = result_one_point.result_value_mas_x;
         result_value_mas_y[i] = result_one_point.result_value_mas_y;

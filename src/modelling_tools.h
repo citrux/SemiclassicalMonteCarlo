@@ -33,7 +33,7 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
                /*int *mas_ac_opt, double *mas_t, int *mas_iCount, int n_step*/
                );
 
-Result_one_point one_graphic_point(const Params & params, double beta,
+Result_one_point one_plot_point(const Params & params, double beta,
                                    Point * p_grid, double * WerOpt,
                                    double * WerAc, double var_value,
                                    const string & filename_base);

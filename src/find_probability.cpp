@@ -1,323 +1,77 @@
+#include <vector>
+#include <omp.h>
 #include "find_probability.h"
-/*
-    *
-    * процедура проверки, меняет ли функция знак (сравниваем leftBound и
-  *rightBound - значения
-    * функции на границах рассматриваемого промежутка, если эти значения имеют
-  *разные знаки, то на промежутке есть корень)
-    *
-*/
-bool sign2(double leftBound, double rightBound) {
-    if ((leftBound < 0 && rightBound > 0) ||
-        (leftBound > 0 && rightBound < 0)) {
-        return true;
-    } else {
-        return false;
+
+using namespace std;
+
+vector<Point> momentums_with_energy_in_direction(double psi, double energy_value,
+                                          const Params & params) {
+    int n = params.probability.p_points;
+    vec2 dir = {cos(psi), sin(psi)};
+    vec2 step = pmax(psi, params) * dir / n;
+    vector<Point> ps;
+    Point left = {0, 0}, right = left + step;
+    for (int i = 0; i < n; ++i)
+    {
+        if ((energy(left) - energy_value) *
+            (energy(right) - energy_value) < 0) {
+
+            while(len(right - left) > params.probability.p_error) {
+                Point middle = left + (right - left) / 2;
+                if ((energy(left) - energy_value) * (energy(middle) - energy_value) < 0)
+                    right = middle;
+                else
+                    left = middle;
+            }
+
+            ps.push_back(left + (right - left) / 2);
+        }
+        swap(left, right);
+        right = left + step;
     }
+    return ps;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////
-// Функции, используемые для нахождения вероятности рассеяния в полярной системе
-// координат ////
-///////////////////////////////////////////////////////////////////////////////////////////////
+void get_energy_limits(double & emin, double & emax) {
+    emin = 0;
+    emax = 1;
+}
 
-/*
-    *
-    * Функция для нахождения p1 из уравнения energy(p1,psi) = energy_value на
-  *промежутке (p1_low, p1_high),
-    * на котором гарантированно есть корень
-    * Используется для определения границ первой зоны Бриллюэна (при построении
-  *изоэнергетических поверхностей)
-    *
-*/
-double Newton_psi_energy(double p1_low, double p1_high, double psi,
-                         double energy_value, const Params & params) {
-    double pn, pn1;
-    bool usl1 = true;
+void calculate_probability(double energy_shift, double * probability, Params & params) {
+    double e_min, e_max;
+    get_energy_limits(e_min, e_max);
+    double step = (e_max - e_min) / params.probability.e_points;
+    double dpsi = 2 * M_PI / params.probability.n_integral;
 
-    // выбираем в качестве начального приближения середину отрезка
-    if (p1_low < p1_high) {
-        pn = (p1_high - p1_low) / 2 + p1_low;
-    } else if (p1_low > p1_high) {
-        pn = (p1_low - p1_high) / 2 + p1_high;
-    } else {
-        return p1_low; // длина интервала равна нулю, поэтому выводим нижнюю
-                       // границу
-    }
-    while (usl1) {
-        pn1 = pn -
-              (energy_psi(pn, psi, params) - energy_value) /
-                  d_energy_psi(pn, psi, params);
-        if (fabs(pn1 - pn) > params.Newton_abs_error) {
-            pn = pn1;
-        } else {
-            usl1 = false;
+    for (int i = 0; i < params.probability.e_points; ++i) {
+        double e = e_min + i * step;
+        vector<Point> prev, curr;
+        for (int j = 0; j < params.probability.n_integral; ++j) {
+            curr = momentums_with_energy_in_direction(j * dpsi, e - energy_shift, params);
+            if (prev.size())
+                for (int k = 0; k < min(prev.size(), curr.size()); ++k)
+                    probability[i] += len(curr[k] - prev[k]) / len(velocity(curr[k] + (prev[k] - curr[k])/2));
+            swap(prev, curr);
         }
     }
-    return pn1;
 }
 
-/*
-    *
-    * Функция, находящая первый корень уравнения energy(p1, psi)=energy_value на
-  *промежутке (0, p1max).
-    * Используется для построения изоэнергетических поверхностей
-    *
-*/
-double apply_Newton_psi_energy(double psi, bool & flag, double energy_value,
-                               double pmax, const Params & params) {
-    double tempres = 0;
-    // объявляем и заполняем массив значений p1, на котором будем искать решение
-    // p1 берем в промежутке 0..p1max
-
-    double step = pmax / params.Newton_n_points;
-    double lb, rb;
-
-    for (int i = 0; i < params.Newton_n_points && !flag; i++) {
-        // если на интервале от mas_py1[i] до mas_py1[i+1] функция
-        // eps(p1)-energy_value меняет знак,
-        // то ищем на этом промежутке решение
-        lb = energy_psi(i * step, psi, params) - energy_value;
-        rb = energy_psi((i + 1) * step, psi, params) - energy_value;
-        if (sign2(lb, rb)) {
-            tempres = Newton_psi_energy(i * step, (i + 1) * step, psi,
-                                        energy_value, params);
-            flag = true;
-        };
-    }
-
-    return tempres;
+void set_probabilities(Params & params) {
+    calculate_probability(0, params.probability.acoustical, params);
+    calculate_probability(params.phonons.beta, params.probability.optical, params);
 }
 
-/*
-    * Вычисление вероятности рассеяния электрона с импульсом p при помощи
-    * билинейной интерполяции на основе нахождения пересечения вертикальной
- * прямой и плоскости,
-    * построенной по трем точкам
-    * p - импульс, для которого ищем вероятность. Должен быть приведен к первой
- * зоне Бриллюэна.
-    * px_max, py_max - границы первой зоны Бриллюэна (предполагается
- * прямоугольная зона)
-    * Nx, Ny - количество точек по соответствующим осям в сетке
-    * angle - угол поворота системы координат (отсчитанный против часовой
- * стрелки) относительно
-    *         оси сверхрешетки
-    * points - массив значений импульса - точек сетки
-    * Wer - массив значений вероятности, посчитанной на узлах выбранной сетки
-*/
-double get_probability(Point p, Point * p_grid, double * Wer,
-                       const Params & params) {
-    double Ax = params.A.x;
-    double Ay = params.A.y;
-    double Bx = params.B.x;
-    double By = params.B.y;
-    double Dx = params.D.x;
-    double Dy = params.D.y;
-    double px = p.x;
-    double py = p.y;
-    int Nx = params.Nx;
-    int Ny = params.Ny;
-    // высчитываем номер клеточки по x и y
-    double K1x =
-        ((By - Ay) / (Bx - Ax) * px - (Dy - Ay) / (Dx - Ax) * Ax - py + Ay) /
-        ((By - Ay) / (Bx - Ax) - (Dy - Ay) / (Dx - Ax));
-    double K1y = (By - Ay) / (Bx - Ax) * (K1x - px) + py;
-    double M1x =
-        ((Dy - Ay) / (Dx - Ax) * px - (By - Ay) / (Bx - Ax) * Ax - py + Ay) /
-        ((Dy - Ay) / (Dx - Ax) - (By - Ay) / (Bx - Ax));
-    double M1y = (Dy - Ay) / (Dx - Ax) * (M1x - px) + py;
-    double stepAD = (Dx - Ax) / Nx;
-    int px_i_temp = (int) floor((K1x - Ax) / stepAD);
 
-    // !!! костыль !!!
-    if (px_i_temp < 0)
-        px_i_temp = 0;
+double get_probability(Point p, Params & params) {
+    double e_min, e_max;
+    get_energy_limits(e_min, e_max);
+    double step = (e_max - e_min) / params.probability.e_points;
 
-    double stepAB = (Bx - Ax) / Ny;
-    int py_i_temp = (int) floor((M1x - Ax) / stepAB);
-    // определяем вершины клеточки, внутрь которой попала наша точка
-    Point p1 = p_grid[py_i_temp + px_i_temp * (Ny + 1)];
-    Point p2 = p_grid[py_i_temp + px_i_temp * (Ny + 1) + 1];
-    Point p3 = p_grid[py_i_temp + px_i_temp * (Ny + 1) + Ny + 2];
-    Point p4 = p_grid[py_i_temp + px_i_temp * (Ny + 1) + Ny + 1];
+    double e = energy(p);
+    double pos = (e - e_min) / step;
+    int i = floor(pos);
+    double w = pos - i;
 
-    /*
-    определяем, где находится точка по отношению к диагонали клетки,
-    проходящей через точки
-
-   p1
-
-           p4
-
-   Уравнение этой диагонали
-
-   (py-p1.y)/(p4.y-p1.y)=(px-p1.x)/(p4.x-p1.x),
-
-   py=p1.y+(p4.y-p1.y)/(p4.x-p1.x)*(p.x-p1.x)
-   */
-    double x1, x2, x3, y1, y2, y3, z1, z2, z3;
-    if (py > p1.y + (p4.y - p1.y) / (p4.x - p1.x) * (px - p1.x)) {
-        // выше диагонали
-        x1 = p1.x;
-        y1 = p1.y;
-        z1 = Wer[py_i_temp + px_i_temp * (Ny + 1)];
-        x2 = p2.x;
-        y2 = p2.y;
-        z2 = Wer[py_i_temp + px_i_temp * (Ny + 1) + 1];
-        x3 = p4.x;
-        y3 = p4.y;
-        z3 = Wer[py_i_temp + px_i_temp * (Ny + 1) + Ny + 2];
-        /*
-        1 p1	2 p2
-
-                3 p4
-        */
-    } else {
-        // ниже диагонали
-        x1 = p1.x;
-        y1 = p1.y;
-        z1 = Wer[py_i_temp + px_i_temp * (Ny + 1)];
-        x2 = p3.x;
-        y2 = p3.y;
-        z2 = Wer[py_i_temp + px_i_temp * (Ny + 1) + Ny + 1];
-        x3 = p4.x;
-        y3 = p4.y;
-        z3 = Wer[py_i_temp + px_i_temp * (Ny + 1) + Ny + 2];
-        /*
-        1 p1
-
-        2 p3    3 p4
-        */
-    }
-    /* решаем систему линейных уравнений
-        A*x1+B*y1+C*z1=1
-        A*x2+B*y2+C*z2=1
-        A*x3+B*y3+C*z3=1
-        Находим A, B, C.
-        Тогда z_int = (1-A*p.x-B*p.x)/C
-    */
-    double res;
-    if (fabs(x3 * (y1 - y2) + x1 * (y2 - y3) + x2 * (-y1 + y3)) <
-        0.0001) // условие, необходимое для обработки скачков
-        res = Wer[py_i_temp + px_i_temp * (Ny + 1)];
-    else
-        res =
-            ((-x3) * y2 * z1 + x2 * y3 * z1 + x3 * y1 * z2 - x1 * y3 * z2 -
-             x2 * y1 * z3 + x1 * y2 * z3 +
-             ((-y3) * z1 - y1 * z2 + y3 * z2 + y2 * (z1 - z3) + y1 * z3) * px +
-             ((-x2) * z1 + x3 * z1 + x1 * z2 - x3 * z2 - x1 * z3 + x2 * z3) *
-                 py) /
-            (x3 * (y1 - y2) + x1 * (y2 - y3) + x2 * (-y1 + y3));
-    if (res > 1000)
-        res = 10;
-    if (res < 0.00001)
-        res = 0;
-    return res;
-    /*ofstream temp;
-    temp.open("temp.txt");
-    temp<<p.x<<" "<<p.y<<endl;
-    temp<<p1.x<<" "<<p1.y<<endl;
-    temp<<p2.x<<" "<<p2.y<<endl;
-    temp<<p3.x<<" "<<p3.y<<endl;
-    temp<<p4.x<<" "<<p4.y<<endl;
-    temp.close();*/
-}
-
-/*
-    *
-    * Выражение, интеграл от которого берется методом Симпсона
-    *
-*/
-double simpson_function(double psi, Point p, const Params & params) {
-    bool flag = false;
-    double result = 0.0;
-
-    double p1max = pmax(psi, params);
-    double energy_value = energy(p, params) - params.beta;
-
-    double p1 = apply_Newton_psi_energy(psi, flag, energy_value, p1max, params);
-
-    if (!flag)
-        result = 0;
-    else
-        result = p1 / (fabs(d_energy_psi(p1, psi, params)));
-
-    return result;
-}
-
-/*
-    *
-    * Реализация метода Симпсона
-    *
-*/
-double simpson(Point p, const Params & params) {
-    double result = 0.0, a = 0, b = 2 * M_PI;
-    double h = (b - a) / ((double) params.Simson_n);
-
-    for (int i = 1; i < params.Simson_n - 1; i += 2) {
-        double psi_1 = a + h * (i - 1);
-        double psi_2 = a + h * i;
-        double psi_3 = a + h * (i + 1);
-
-        result += simpson_function(psi_1, p, params) +
-                  4 * simpson_function(psi_2, p, params) +
-                  simpson_function(psi_3, p, params);
-    }
-
-    return result * h / 3;
-}
-
-/*
-    *
-    * Собственно вычисление вероятности рассеяния
-    *
-*/
-void full_probability_psi(Point * p_grid, double * res_mas,
-                          const Params & params) {
-    omp_set_num_threads(params.num_threads_openmp);
-#pragma omp parallel for
-    for (int i = 0; i < (params.Nx + 1) * (params.Ny + 1); i++) {
-        res_mas[i] = simpson(p_grid[i], params);
-        // printf("%d \t %f \t %f \t %f\n", i, px_mas[i], py_mas[i],
-        // res_mas[i]);
-    };
-}
-
-double distrib_function(double p, double psi, const Params & params) {
-    return exp((-1.0 / params.T) * energy_psi(p, psi, params)) * p;
-}
-
-double ditrib_function_int_p(double psi, const Params & params) {
-    double result = 0.0, a = 0, b = pmax(psi, params);
-    double h = (b - a) / ((double) ((params.Simson_n) * 5.0));
-
-    for (int i = 1; i < (params.Simson_n) * 5.0 - 1; i += 2) {
-        double p_1 = a + h * (i - 1);
-
-        double p_2 = a + h * i;
-
-        double p_3 = a + h * (i + 1);
-
-        result += distrib_function(p_1, psi, params) +
-                  4 * distrib_function(p_2, psi, params) +
-                  distrib_function(p_3, psi, params);
-    }
-    return result * h / 3;
-}
-
-double A_norm(const Params & params) {
-    double result = 0.0, a = 0, b = 2 * M_PI;
-    double h = (b - a) / ((double) ((params.Simson_n) * 5.0));
-
-    for (int i = 1; i < params.Simson_n * 5.0 - 1; i += 2) {
-        double psi_1 = a + h * (i - 1);
-        double psi_2 = a + h * i;
-        double psi_3 = a + h * (i + 1);
-
-        result += ditrib_function_int_p(psi_1, params) +
-                  4 * ditrib_function_int_p(psi_2, params) +
-                  ditrib_function_int_p(psi_3, params);
-    }
-
-    return result * h / 3;
+    return (1 - w) * (params.probability.acoustical[i] + params.probability.optical[i]) +
+               w * (params.probability.acoustical[i+1] + params.probability.optical[i+1]);
 }

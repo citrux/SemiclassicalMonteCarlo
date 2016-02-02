@@ -5,7 +5,7 @@
     * Выражение для энергетического спектра (в декартовых координатах)
     *
 */
-double energy(Point p, const Params & params) {
+double energy(Point p) {
     return (1 - cos(p.x) * cos(p.y));
 }
 /*
@@ -13,7 +13,7 @@ double energy(Point p, const Params & params) {
     * Выражение для энергетического спектра (в полярных координатах)
     *
 */
-double energy_psi(double p, double psi, const Params & params) {
+double energy_psi(double p, double psi) {
     return (1 - cos(p * cos(psi)) * cos(p * sin(psi)));
 }
 
@@ -22,7 +22,7 @@ double energy_psi(double p, double psi, const Params & params) {
     * Производная энергии по модулю импульса (в полярных координатах)
     *
 */
-double d_energy_psi(double p, double psi, const Params & params) {
+double d_energy_psi(double p, double psi) {
     return (sin(p * cos(psi)) * cos(psi) * cos(p * sin(psi)) +
             cos(p * cos(psi)) * sin(p * sin(psi)) * sin(psi));
 }
@@ -32,12 +32,8 @@ double d_energy_psi(double p, double psi, const Params & params) {
     * Компоненты скорости
     *
 */
-double vx_fun(Point p, const Params & params) {
-    return params.vx0 * sin(p.x) * cos(p.y);
-}
-
-double vy_fun(Point p, const Params & params) {
-    return params.vy0 * cos(p.x) * sin(p.y);
+vec2 velocity(Point p) {
+    return {sin(p.x) * cos(p.y), cos(p.x) * sin(p.y)};
 }
 
 /*
@@ -45,12 +41,16 @@ double vy_fun(Point p, const Params & params) {
     * Правые части уравнений движения
     *
 */
-
-double right_x(Point p, double t, const Params & params) { return params.Exc; }
-
-double right_y(Point p, double t, const Params & params) {
-    return params.Ey1 * cos(t * params.wy1) +
-           params.Ey2 * cos(t * params.wy2 + params.phi);
+vec2 forces(Point p, double t, const Params & params) {
+    double phi = params.fields.phi, phi1 = params.fields.phi1, phi2 = params.fields.phi2;
+    double omega1 = params.fields.omega1, omega2 = params.fields.omega2;
+    vec2 E0 = params.fields.E0;
+    vec2 E1 = {params.fields.E1.x * cos(omega1 * t),
+               params.fields.E1.y * cos(omega1 * t + phi1)};
+    vec2 E2 = {params.fields.E2.x * cos(omega2 * t + phi),
+               params.fields.E2.y * cos(omega2 * t + phi + phi2)};
+    vec2 ov = {velocity(p).y, -velocity(p).x};
+    return E0 + E1 + E2 + params.fields.H * ov;
 }
 
 /*
@@ -60,14 +60,13 @@ double right_y(Point p, double t, const Params & params) {
 */
 double pmax(double psi, const Params & params) {
     // требуется найти пересечение луча с границей четырёхугольника
-    Point C = params.B + (params.D - params.A);
     Point O = {0, 0};
     // Считаем расстояние от начала координат до точки пересечения луча с
     // отрезками
-    vec2 OA = params.A - O;
-    vec2 OB = params.B - O;
-    vec2 OC = C - O;
-    vec2 OD = params.D - O;
+    vec2 OA = params.bzone.A - O;
+    vec2 OB = params.bzone.B - O;
+    vec2 OC = params.bzone.C - O;
+    vec2 OD = params.bzone.D - O;
     vec2 l = {cos(psi), sin(psi)};
 
     double res = -1;
@@ -93,8 +92,8 @@ double pmax(double psi, const Params & params) {
 */
 Point to_first_bz(Point p, const Params & params) {
     // базис обратной решётки
-    vec2 b = params.B - params.A;
-    vec2 d = params.D - params.A;
+    vec2 b = params.bzone.B - params.bzone.A;
+    vec2 d = params.bzone.D - params.bzone.A;
 
     // строим взаимный базис
     vec2 bc = ort(b - dot(b, ort(d)) * ort(d));
@@ -103,52 +102,11 @@ Point to_first_bz(Point p, const Params & params) {
     vec2 dc = ort(d - dot(d, ort(b)) * ort(b));
     dc = dc / dot(dc, d);
 
-    vec2 pr = p - params.A;
+    vec2 pr = p - params.bzone.A;
 
     // находим разложение по базису, используя взаимный базис
     int nb = floor(dot(pr, bc));
     int nd = floor(dot(pr, dc));
 
     return p - nb * b - nd * d;
-}
-
-/*
-    *
-    * Возвращает точку с индексами (k,m)
-    *
-*/
-Point point_k_m(int k, int m, const Params & params) {
-    double Ax = params.A.x;
-    double Ay = params.A.y;
-    double Bx = params.B.x;
-    double By = params.B.y;
-    double Dx = params.D.x;
-    double Dy = params.D.y;
-
-    double Kx = Ax + (Dx - Ax) * k / params.Nx;
-    double Ky = Ay + (Dy - Ay) * k / params.Nx;
-    double Mx = Ax + (Bx - Ax) * m / params.Ny;
-    double My = Ay + (By - Ay) * m / params.Ny;
-    double Ox =
-        ((By - Ay) / (Bx - Ax) * Kx - (Dy - Ay) / (Dx - Ax) * Mx + My - Ky) /
-        ((By - Ay) / (Bx - Ax) - (Dy - Ay) / (Dx - Ax));
-    double Oy = (By - Ay) / (Bx - Ax) * (Ox - Kx) + Ky;
-
-    return {Ox, Oy};
-}
-
-/*
-    *
-    * Массив координат точек в импульсном пространстве
-    *
-*/
-void make_grid(Point * p_grid, const Params & params) {
-    logger(LOG_INFO, "creating grid...");
-    int Nx = params.Nx;
-    int Ny = params.Ny;
-    for (int i = 0; i < Nx + 1; i++)
-        for (int j = 0; j < Ny + 1; j++) {
-            p_grid[j + i * (Ny + 1)] = point_k_m(i, j, params);
-        };
-    logger(LOG_OK, "\t[DONE]\n");
 }

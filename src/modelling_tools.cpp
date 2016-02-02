@@ -20,28 +20,15 @@ w1 = 88675123;
 }*/
 
 void runge(Point & p, double t, const Params & params) {
-    double px_1 = p.x;
-    double py_1 = p.y;
-    double kx1, kx2, kx3, kx4, ky1, ky2, ky3, ky4;
+    vec2 k1, k2, k3, k4;
     double dt = params.dt;
 
-    kx1 = right_x({px_1, py_1}, t, params);
-    ky1 = right_y({px_1, py_1}, t, params);
-    kx2 =
-        right_x({px_1 + dt / 2 * kx1, py_1 + dt / 2 * ky1}, t + dt / 2, params);
-    ky2 =
-        right_y({px_1 + dt / 2 * kx1, py_1 + dt / 2 * ky1}, t + dt / 2, params);
-    kx3 =
-        right_x({px_1 + dt / 2 * kx2, py_1 + dt / 2 * ky2}, t + dt / 2, params);
-    ky3 =
-        right_y({px_1 + dt / 2 * kx2, py_1 + dt / 2 * ky2}, t + dt / 2, params);
-    kx4 = right_x({px_1 + dt * kx3, py_1 + dt * ky3}, t + dt, params);
-    ky4 = right_y({px_1 + dt * kx3, py_1 + dt * ky3}, t + dt, params);
+    k1 = forces(p, t, params);
+    k2 = forces(p + dt / 2 * k1, t + dt / 2, params);
+    k3 = forces(p + dt / 2 * k2, t + dt / 2, params);
+    k4 = forces(p + dt * k3, t + dt, params);
 
-    px_1 += 1.0 / 6.0 * dt * (kx1 + 2 * kx2 + 2 * kx3 + kx4);
-    py_1 += 1.0 / 6.0 * dt * (ky1 + 2 * ky2 + 2 * ky3 + ky4);
-    p.x = px_1;
-    p.y = py_1;
+    p += 1.0 / 6.0 * dt * (k1 + 2 * k2 + 2 * k3 + k4);
 }
 
 Point init_dist(unsigned int & x1, unsigned int & y1, unsigned int & z1,
@@ -245,7 +232,7 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
     // logger(LOG_INFO, "End jobKernel\n");
 }
 
-Result_one_point one_graphic_point(const Params & params, double beta,
+Result_one_point one_plot_point(const Params & params, double beta,
                                    Point * p_grid, double * WerOpt,
                                    double * WerAc, double var_value,
                                    const string & filename_base) {
@@ -254,37 +241,37 @@ Result_one_point one_graphic_point(const Params & params, double beta,
 
     time_t time_load = time(NULL);
 
-    double * values_x = new double[params.n_part]; // плотность постоянного
+    double * values_x = new double[params.particles]; // плотность постоянного
     // тока вдоль Ох (до
     // усреднения по ансамблю)
-    double * values_y = new double[params.n_part]; // плотность постоянного
+    double * values_y = new double[params.particles]; // плотность постоянного
     // тока вдоль Оу (до
     // усреднения по ансамблю)
-    double * av_time = new double[params.n_part]; // среднее время релаксации
+    double * av_time = new double[params.particles]; // среднее время релаксации
     // (до усреднения по
     // ансамблю)
     unsigned int * nOpt =
-        new unsigned int[params.n_part]; // количество рассеяний на
+        new unsigned int[params.particles]; // количество рассеяний на
     // оптических фононах
     unsigned int * nAc =
-        new unsigned int[params.n_part]; // количество рассеяний на
+        new unsigned int[params.particles]; // количество рассеяний на
     // акустических фононах
 
     //Массивы-логи
     int num_logs = (int) (params.all_time / (params.dt)) + 1;
-    double * px_log = new double[num_logs * (params.n_part)];
-    double * py_log = new double[num_logs * (params.n_part)];
+    double * px_log = new double[num_logs * (params.particles)];
+    double * py_log = new double[num_logs * (params.particles)];
 
     // Инициализируем генератор случайных чисел
     srand(time(NULL));
-    unsigned int * seed = new unsigned int[params.n_part];
-    for (int j = 0; j < params.n_part; j++) {
+    unsigned int * seed = new unsigned int[params.particles];
+    for (int j = 0; j < params.particles; j++) {
         seed[j] = ((unsigned int) rand()) % 100000000 + 100000000;
     };
 
-    omp_set_num_threads(params.num_threads_openmp);
+    omp_set_num_threads(params.thread);
 #pragma omp parallel for
-    for (int j = 0; j < params.n_part; j++) {
+    for (int j = 0; j < params.particles; j++) {
         jobKernel(values_x, values_y, av_time, nAc, nOpt, params, beta, seed[j],
                   j, p_grid, WerAc, WerOpt, px_log, py_log, num_logs);
     };
@@ -297,13 +284,13 @@ Result_one_point one_graphic_point(const Params & params, double beta,
 
     // Помещаем результат расчета для одной точки графика в структуру
     Result_one_point result;
-    result.result_value_mas_x = Mean(values_x, params.n_part);
-    result.result_value_mas_y = Mean(values_y, params.n_part);
-    result.std_values_mas_x = Std(values_x, params.n_part);
-    result.std_values_mas_y = Std(values_y, params.n_part);
-    result.result_av_time = Mean(av_time, params.n_part);
-    result.result_nOpt = Mean(nOpt, params.n_part);
-    result.result_nAc = Mean(nAc, params.n_part);
+    result.result_value_mas_x = Mean(values_x, params.particles);
+    result.result_value_mas_y = Mean(values_y, params.particles);
+    result.std_values_mas_x = Std(values_x, params.particles);
+    result.std_values_mas_y = Std(values_y, params.particles);
+    result.result_av_time = Mean(av_time, params.particles);
+    result.result_nOpt = Mean(nOpt, params.particles);
+    result.result_nAc = Mean(nAc, params.particles);
 
     // Удаляем массивы - логи
     delete[] px_log;
