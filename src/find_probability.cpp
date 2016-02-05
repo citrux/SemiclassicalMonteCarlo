@@ -15,6 +15,7 @@ vector<Point> momentums_with_energy_in_direction(double psi,
     // + " \n");
     vector<Point> ps;
     Point O = {0, 0};
+
     for (int i = 0; i < n; ++i) {
         Point left = O + i * step, right = left + step;
         // logger(LOG_INFO, "momentum: left = " + to_string(left.x) + ", right =
@@ -45,30 +46,98 @@ void get_energy_limits(double & emin, double & emax) {
     emax = 2;
 }
 
-void calculate_probability(double energy_shift, double * probability,
-                           Params & params) {
+Point point_on_contour(Point a, double nrg, const Params & params) {
+    vec2 dir = ort(velocity(a));
+    Point b = a - dir * (energy(a) - nrg) / dot(velocity(a), dir);
+    while (len(a-b) > params.probability.p_error) {
+        a = b;
+        b = a - dir * (energy(a) - nrg) / dot(velocity(a), dir);
+    }
+
+    return b;
+}
+
+double integrate(Point a, Point b, double nrg, const Params & params) {
+    // double step = 0.00001;
+    // double result = 0;
+
+    // // logger(LOG_INFO, "points: \n");
+
+    // Point c = a;
+    // int i = 0;
+    // while (len(c - b) > step && i < 20) {
+    //     // logger(LOG_INFO, "> " + to_string(c.x) + ", " + to_string(c.y) + "; speed: " + to_string(len(velocity(c))) + " \n");
+    //     vec2 dir = ort(b - c);
+    //     Point d = point_on_contour(c + step * dir, nrg, params);
+    //     result += len(d-c)/len(velocity(c));
+    //     c = d;
+    //     ++i;
+    // }
+    // result += len(c-b)/len(velocity(c));
+    // // logger(LOG_INFO, "result: " + to_string(result) + "\n");
+    // return result;
+    Point c = point_on_contour(a + (b-a)/2, nrg, params);
+    double l1 = len(c-a), l2 = len(b-c), l = l1 + l2;
+    double wa = (1./3 - l2 / l1 / 6) * l,
+           wc = l * l * l / 6 / l1 / l2,
+           wb = (1./3 - l1 / l2 / 6) * l;
+    return wa / len(velocity(a)) + wb / len(velocity(b)) + wc / len(velocity(c));
+}
+
+void calculate_probability(double * probability, Params & params) {
     double e_min, e_max;
     get_energy_limits(e_min, e_max);
     double step = (e_max - e_min) / params.probability.e_points;
-    double dpsi = 2 * M_PI / params.probability.n_integral;
 
     // logger(LOG_INFO, "dpsi = " + to_string(dpsi) + "\n");
-
+    omp_set_num_threads(params.model.threads);
+    #pragma omp parallel for
     for (int i = 0; i < params.probability.e_points; ++i) {
         double e = e_min + i * step;
         params.probability.energy[i] = e;
         vector<Point> prev, curr;
-        for (int j = 0; j < params.probability.n_integral; ++j) {
-            curr = momentums_with_energy_in_direction(j * dpsi,
-                                                      e - energy_shift, params);
-            if (prev.size())
-                for (int k = 0; k < min(prev.size(), curr.size()); ++k)
-                    probability[i] +=
-                        len(curr[k] - prev[k]) /
-                        len(velocity(curr[k] + (prev[k] - curr[k]) / 2));
-            swap(prev, curr);
+        double probability_old = 0;
+        probability[i] = 1;
+        int n = params.probability.n_integral;
+        int count = 12;
+        while (fabs(probability[i] - probability_old) / probability_old > 1e-5 && count) {
+            double dpsi = 2 * M_PI / n;
+            probability_old = probability[i];
+            probability[i] = 0;
+            // logger(LOG_INFO, to_string(e) + " " +to_string(n) + " " + to_string(probability_old) + "\n");
+            for (double psi = 0; psi < 2 * M_PI; psi += dpsi) {
+                // logger(LOG_INFO, to_string(1.0 * j / params.probability.n_integral) + "\n");
+                curr = momentums_with_energy_in_direction(psi, e, params);
+
+                if (psi > 0) {
+                    for (int k = curr.size(); k < prev.size(); ++k) {
+                        vec2 dir = {cos(psi-dpsi), sin(psi - dpsi)};
+                        Point end = pmax(psi - dpsi, params) * dir;
+                        probability[i] += integrate(prev[k], end, e, params);
+                    }
+
+                    for (int k = prev.size(); k < curr.size(); ++k) {
+                        vec2 dir = {cos(psi), sin(psi)};
+                        Point start = pmax(psi, params) * dir;
+                        probability[i] += integrate(start, curr[k], e, params);
+                    }
+
+                    if (prev.size() == curr.size()) {
+                        for (int k = 0; k < curr.size(); ++k)
+                            probability[i] += integrate(prev[k], curr[k], e, params);
+                    }
+                }
+
+
+                swap(prev, curr);
+            }
+            n *= 2;
+            --count;
+
         }
+        // logger(LOG_INFO, "epoint" +to_string(i) +"complete\n");
     }
+    // logger(LOG_INFO, "calc finished\n");
 }
 
 void load_arrays(const string & filename, vector<double *> arrays, int n) {
@@ -93,21 +162,13 @@ void save_arrays(const string & filename, vector<double *> arrays, int n) {
 
 void set_probabilities(Params & params) {
     if (params.files.load) {
-        load_arrays(params.files.filename_ac,
-                    {params.probability.energy, params.probability.acoustical},
-                    params.probability.e_points);
-        load_arrays(params.files.filename_opt,
-                    {params.probability.energy, params.probability.optical},
+        load_arrays(params.files.probability,
+                    {params.probability.energy, params.probability.probability},
                     params.probability.e_points);
     } else {
-        calculate_probability(0, params.probability.acoustical, params);
-        calculate_probability(params.phonons.beta, params.probability.optical,
-                              params);
-        save_arrays(params.files.filename_ac,
-                    {params.probability.energy, params.probability.acoustical},
-                    params.probability.e_points);
-        save_arrays(params.files.filename_opt,
-                    {params.probability.energy, params.probability.optical},
+        calculate_probability(params.probability.probability, params);
+        save_arrays(params.files.probability,
+                    {params.probability.energy, params.probability.probability},
                     params.probability.e_points);
     }
 }
@@ -122,11 +183,8 @@ double get_probability(Point p, const Params & params) {
     int i = floor(pos);
     double w = pos - i;
 
-    return (1 - w) *
-               (params.phonons.wla_max * params.probability.acoustical[i] +
-                params.phonons.wlo_max * params.probability.optical[i]) +
-           w * (params.phonons.wla_max * params.probability.acoustical[i + 1] +
-                params.phonons.wlo_max * params.probability.optical[i + 1]);
+    return (1 - w) * params.probability.probability[i] +
+           w * params.probability.probability[i + 1];
 }
 
 double distrib_function(double p, double psi, const Params & params) {

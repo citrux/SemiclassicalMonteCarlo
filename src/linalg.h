@@ -3,15 +3,22 @@
     * Структура, хранящая компоненты импульса
     *
 */
-struct Point {
-    double x;
-    double y;
-};
 
 struct vec2 {
     double x;
     double y;
+    vec2() : x(0), y(0) {};
+    vec2(double a, double b) : x(a), y(b) {};
 };
+
+struct Point {
+    double x;
+    double y;
+    Point() : x(0), y(0) {};
+    Point(double a, double b) : x(a), y(b) {};
+    Point(const vec2 & p) : x(p.x), y(p.y) {};
+};
+
 
 inline vec2 operator-(const vec2 & v) { return {-v.x, -v.y}; }
 
@@ -48,6 +55,11 @@ inline vec2 operator-(const Point & end, const Point & start) {
 inline Point & operator+=(Point & start, const vec2 & shift) {
     start.x += shift.x;
     start.y += shift.y;
+    return start;
+}
+inline Point & operator-=(Point & start, const vec2 & shift) {
+    start.x -= shift.x;
+    start.y -= shift.y;
     return start;
 }
 inline Point operator+(Point start, const vec2 & shift) {

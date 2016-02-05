@@ -66,9 +66,8 @@ void load_config(const string & filename, Params & params) {
     }
 
     params.files.load = reader.GetInteger("files", "load", 0);
-    params.files.filename_opt = reader.Get("files", "optical", "UNKNOWN");
-    params.files.filename_ac = reader.Get("files", "acoustical", "UNKNOWN");
-    params.files.filename_res = reader.Get("files", "result", "UNKNOWN");
+    params.files.probability = reader.Get("files", "probability", "UNKNOWN");
+    params.files.result = reader.Get("files", "result", "UNKNOWN");
 
     params.phonons.beta = reader.GetReal("phonons", "beta", 0);
     params.phonons.wla_max = reader.GetReal("phonons", "wla_max", 0);
@@ -97,8 +96,7 @@ void load_config(const string & filename, Params & params) {
         reader.GetInteger("probability", "n_integral", 0);
     params.probability.e_points =
         reader.GetInteger("probability", "e_points", 0);
-    params.probability.optical = new double[params.probability.e_points];
-    params.probability.acoustical = new double[params.probability.e_points];
+    params.probability.probability = new double[params.probability.e_points];
     params.probability.energy = new double[params.probability.e_points];
 
     params.model.dt = reader.GetReal("model", "dt", 1e-4);

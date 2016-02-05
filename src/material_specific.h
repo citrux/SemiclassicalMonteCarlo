@@ -12,7 +12,7 @@ using std::string;
 struct Files {
     bool load; // если 1, загружаем значения вероятностей из
     // файлов, иначе - вычисляем
-    string filename_opt, filename_ac, filename_res;
+    string probability, result;
 };
 
 struct Phonons {
@@ -30,7 +30,7 @@ struct Bzone {
 };
 
 struct Probability {
-    double p_error, *acoustical, *optical, *energy;
+    double p_error, *probability, *energy;
 
     int p_points, n_integral, e_points;
 };
@@ -90,7 +90,7 @@ double energy_psi(double p, double psi);
     * Производная энергии по модулю импульса (в полярных координатах)
     *
 */
-double d_energy_psi(double p, double psi);
+// double d_energy_psi(double p, double psi);
 
 /*
     *
