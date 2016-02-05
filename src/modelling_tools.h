@@ -1,6 +1,6 @@
+#include <climits>
+#include <cstdio>
 #include "text_files.h"
-#include <limits.h>
-#include <stdio.h>
 
 struct Result_one_point {
     double result_value_mas_x;
@@ -14,9 +14,9 @@ struct Result_one_point {
 
 double random_uniform(unsigned int & x1, unsigned int & y1, unsigned int & z1,
                       unsigned int & w1);
-void runge(Point & p, double t, const Params & params);
+void runge(Point & p, double t);
 Point init_dist(unsigned int & x1, unsigned int & y1, unsigned int & z1,
-                unsigned int & w1, const Params & params);
+                unsigned int & w1);
 double Mean(double * arr, int count);
 double Mean(unsigned int * arr, int count);
 double Std(double * arr, int count);
@@ -25,14 +25,11 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
                double * dev_average_time_array, unsigned int * dev_nAc,
                unsigned int * dev_nOpt,
 
-               Params * params, double beta, unsigned int rand_init_value,
-               int idx,
+               double beta, unsigned int rand_init_value, int idx,
 
                Point * p_grid, double * res_ac, double * res_opt,
-               double * px_log, double * py_log, int num_logs
-               /*int *mas_ac_opt, double *mas_t, int *mas_iCount, int n_step*/
-               );
+               double * px_log, double * py_log, int num_logs);
 
-Result_one_point one_plot_point(const Params & params, double beta,
-                                Point * p_grid, double * WerOpt, double * WerAc,
-                                double var_value, const string & filename_base);
+Result_one_point one_plot_point(double beta, Point * p_grid, double * WerOpt,
+                                double * WerAc, double var_value,
+                                const string & filename_base);

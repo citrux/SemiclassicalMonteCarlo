@@ -19,20 +19,20 @@ w1 = 88675123;
     mas[idx] = random_uniform(x1, y1, z1, w1);
 }*/
 
-void runge(Point & p, double t, const Params & params) {
+void runge(Point & p, double t) {
     vec2 k1, k2, k3, k4;
-    double dt = params.model.dt;
+    double dt = config::model.dt;
 
-    k1 = forces(p, t, params);
-    k2 = forces(p + dt / 2 * k1, t + dt / 2, params);
-    k3 = forces(p + dt / 2 * k2, t + dt / 2, params);
-    k4 = forces(p + dt * k3, t + dt, params);
+    k1 = forces(p, t);
+    k2 = forces(p + dt / 2 * k1, t + dt / 2);
+    k3 = forces(p + dt / 2 * k2, t + dt / 2);
+    k4 = forces(p + dt * k3, t + dt);
 
     p += 1.0 / 6.0 * dt * (k1 + 2 * k2 + 2 * k3 + k4);
 }
 
 Point init_dist(unsigned int & x1, unsigned int & y1, unsigned int & z1,
-                unsigned int & w1, const Params & params) {
+                unsigned int & w1) {
     double psi;
     double p;
     double z;
@@ -40,9 +40,9 @@ Point init_dist(unsigned int & x1, unsigned int & y1, unsigned int & z1,
     Point point;
     do {
         psi = 2 * M_PI * random_uniform(x1, y1, z1, w1);
-        p = pmax(psi, params) * random_uniform(x1, y1, z1, w1);
+        p = pmax(psi) * random_uniform(x1, y1, z1, w1);
         z = random_uniform(x1, y1, z1, w1);
-        f = distrib_function(p, psi, params);
+        f = distrib_function(p, psi);
     } while (z >= f);
     point.x = p * cos(psi);
     point.y = p * sin(psi);
@@ -84,8 +84,7 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
                double * dev_average_time_array, unsigned int * dev_nAc,
                unsigned int * dev_nOpt,
 
-               const Params & params, double beta, unsigned int rand_init_value,
-               int idx,
+               double beta, unsigned int rand_init_value, int idx,
 
                Point * p_grid, double * res_ac, double * res_opt,
                double * px_log, double * py_log, int num_logs) {
@@ -108,7 +107,7 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
     double value_x = 0.0;
     double value_y = 0.0;
 
-    Point p = init_dist(x1, y1, z1, w1, params);
+    Point p = init_dist(x1, y1, z1, w1);
     double p1 = sqrt(p.x * p.x + p.y * p.y);
     double psi = atan2(p.y, p.x);
 
@@ -124,26 +123,29 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
     int nAc = 0;
     int nOpt = 0;
 
-    double beta_opt = params.phonons.beta, beta_ac = 0.0;
+    double beta_opt = config::phonons.beta, beta_ac = 0.0;
 
     int t_num = 0;
 
-    while (t < params.model.all_time) {
+    while (t < config::model.all_time) {
         v = velocity(p);
 
-        value_x += v.x * params.model.dt;
-        value_y += v.y * params.model.dt;
+        value_x += v.x * config::model.dt;
+        value_y += v.y * config::model.dt;
 
-        runge(p, t, params); // решаем уравнения движения
+        runge(p, t); // решаем уравнения движения
 
         /* приводим импульс к зоне */
-        p = to_first_bz(p, params);
+        p = to_first_bz(p);
         px_log_local[t_num] = p.x;
         py_log_local[t_num] = p.y;
-        t += params.model.dt;
+        t += config::model.dt;
 
         r = -log(random_uniform(x1, y1, z1, w1));
-        wsum += get_probability(p, params) * params.model.dt;
+        double e = energy(p);
+        wsum += (config::phonons.wla_max * get_probability(e - beta_ac) +
+                 config::phonons.wlo_max * get_probability(e - beta_opt)) *
+                config::model.dt;
 
         if (wsum > r) {
             n0++; // наращиваем счетчик общего числа рассеяний
@@ -159,11 +161,11 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
                           random_uniform(x1, y1, z1, w1); // случайным образом
                     // разыгрываем фазу
                     // квазиимпульса
-                    p_max = pmax(psi, params); // максимальное значение
+                    p_max = pmax(psi); // максимальное значение
                     // модуля квазиимпульса
                     // в направлении угла psi
-                    p = momentums_with_energy_in_direction(psi, energy_value,
-                                                           params)[0];
+                    p = momentums_with_energy_in_direction(psi,
+                                                           energy_value)[0];
                     // если p1 существует, то flag = true, и мы правильно
                     // подобрали угол рассеяния, поэтому выходим из цикла
 
@@ -184,11 +186,11 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
                                                              // образом
                         // разыгрываем фазу
                         // квазиимпульса
-                        p_max = pmax(psi, params); // максимальное значение
+                        p_max = pmax(psi); // максимальное значение
                         // модуля квазиимпульса
                         // в направлении угла psi
-                        p = momentums_with_energy_in_direction(
-                            psi, energy_value, params)[0];
+                        p = momentums_with_energy_in_direction(psi,
+                                                               energy_value)[0];
                         // если p1 существует, то flag = true, и мы правильно
                         // подобрали угол рассеяния, поэтому выходим из цикла
 
@@ -214,9 +216,8 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
     // logger(LOG_INFO, "End jobKernel\n");
 }
 
-Result_one_point one_plot_point(const Params & params, double beta,
-                                Point * p_grid, double * WerOpt, double * WerAc,
-                                double var_value,
+Result_one_point one_plot_point(double beta, Point * p_grid, double * WerOpt,
+                                double * WerAc, double var_value,
                                 const string & filename_base) {
     logger(LOG_INFO,
            "Calculate current density for " + to_string(var_value) + "...");
@@ -224,41 +225,41 @@ Result_one_point one_plot_point(const Params & params, double beta,
     time_t time_load = time(NULL);
 
     double * values_x =
-        new double[params.model.particles]; // плотность постоянного
+        new double[config::model.particles]; // плотность постоянного
     // тока вдоль Ох (до
     // усреднения по ансамблю)
     double * values_y =
-        new double[params.model.particles]; // плотность постоянного
+        new double[config::model.particles]; // плотность постоянного
     // тока вдоль Оу (до
     // усреднения по ансамблю)
     double * av_time =
-        new double[params.model.particles]; // среднее время релаксации
+        new double[config::model.particles]; // среднее время релаксации
     // (до усреднения по
     // ансамблю)
     unsigned int * nOpt =
-        new unsigned int[params.model.particles]; // количество рассеяний на
+        new unsigned int[config::model.particles]; // количество рассеяний на
     // оптических фононах
     unsigned int * nAc =
-        new unsigned int[params.model.particles]; // количество рассеяний на
+        new unsigned int[config::model.particles]; // количество рассеяний на
     // акустических фононах
 
     //Массивы-логи
-    int num_logs = (int) (params.model.all_time / (params.model.dt)) + 1;
-    double * px_log = new double[num_logs * (params.model.particles)];
-    double * py_log = new double[num_logs * (params.model.particles)];
+    int num_logs = (int) (config::model.all_time / (config::model.dt)) + 1;
+    double * px_log = new double[num_logs * (config::model.particles)];
+    double * py_log = new double[num_logs * (config::model.particles)];
 
     // Инициализируем генератор случайных чисел
     srand(time(NULL));
-    unsigned int * seed = new unsigned int[params.model.particles];
-    for (int j = 0; j < params.model.particles; j++) {
+    unsigned int * seed = new unsigned int[config::model.particles];
+    for (int j = 0; j < config::model.particles; j++) {
         seed[j] = ((unsigned int) rand()) % 100000000 + 100000000;
     };
 
-    omp_set_num_threads(params.model.threads);
+    omp_set_num_threads(config::model.threads);
 #pragma omp parallel for
-    for (int j = 0; j < params.model.particles; j++) {
-        jobKernel(values_x, values_y, av_time, nAc, nOpt, params, beta, seed[j],
-                  j, p_grid, WerAc, WerOpt, px_log, py_log, num_logs);
+    for (int j = 0; j < config::model.particles; j++) {
+        jobKernel(values_x, values_y, av_time, nAc, nOpt, beta, seed[j], j,
+                  p_grid, WerAc, WerOpt, px_log, py_log, num_logs);
     };
 
     // Записываем значения компонент квазиимпульса в каждый момент времени для
@@ -269,13 +270,13 @@ Result_one_point one_plot_point(const Params & params, double beta,
 
     // Помещаем результат расчета для одной точки графика в структуру
     Result_one_point result;
-    result.result_value_mas_x = Mean(values_x, params.model.particles);
-    result.result_value_mas_y = Mean(values_y, params.model.particles);
-    result.std_values_mas_x = Std(values_x, params.model.particles);
-    result.std_values_mas_y = Std(values_y, params.model.particles);
-    result.result_av_time = Mean(av_time, params.model.particles);
-    result.result_nOpt = Mean(nOpt, params.model.particles);
-    result.result_nAc = Mean(nAc, params.model.particles);
+    result.result_value_mas_x = Mean(values_x, config::model.particles);
+    result.result_value_mas_y = Mean(values_y, config::model.particles);
+    result.std_values_mas_x = Std(values_x, config::model.particles);
+    result.std_values_mas_y = Std(values_y, config::model.particles);
+    result.result_av_time = Mean(av_time, config::model.particles);
+    result.result_nOpt = Mean(nOpt, config::model.particles);
+    result.result_nAc = Mean(nAc, config::model.particles);
 
     // Удаляем массивы - логи
     delete[] px_log;

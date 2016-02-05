@@ -3,11 +3,10 @@
 #include "material_specific.h"
 
 std::vector<Point> momentums_with_energy_in_direction(double psi,
-                                                      double energy_value,
-                                                      const Params & params);
+                                                      double energy_value);
 
-void set_probabilities(Params & params);
+void set_probabilities();
 
-double get_probability(Point p, const Params & params);
+double get_probability(double energy);
 
-double distrib_function(double p, double psi, const Params & params);
+double distrib_function(double p, double psi);

@@ -4,13 +4,13 @@ using namespace std;
 
 int main() {
     // задаем параметры задачи
-    Params params;
     string config = "config.ini";
 
     logger(LOG_INFO, "> Loading config\n");
-    load_config(config, params);
 
-    set_probabilities(params);
+    load_config(config);
+
+    set_probabilities();
 
     // Result_one_point result_one_point;
 
@@ -56,7 +56,7 @@ for (int i = 0; i < var_mas_count; i++) // для всех значений пе
 // зависимости от которой строим
 // график
 {
-    var_value_plot(plot.num_var, var_mas[i], params);
+    var_value_plot(plot.num_var, var_mas[i]);
     result_one_point =
         one_plot_point(params, beta, p_grid, WerOpt, WerAc, var_mas[i], "");
     result_value_mas_x[i] = result_one_point.result_value_mas_x;

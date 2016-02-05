@@ -2,13 +2,9 @@
 #include <cmath>
 #include <string>
 #include "linalg.h"
+
 using std::string;
 
-/*
-    *
-    * Структура, определяющая, загружаем или вычисляем вероятности рассеяния
-    *
-*/
 struct Files {
     bool load; // если 1, загружаем значения вероятностей из
     // файлов, иначе - вычисляем
@@ -30,9 +26,9 @@ struct Bzone {
 };
 
 struct Probability {
-    double p_error, *probability, *energy;
+    double momentum_error, probability_error, *probability, *energy;
 
-    int p_points, n_integral, e_points;
+    int momentum_samples, energy_samples;
 };
 
 struct Model {
@@ -55,23 +51,19 @@ struct Plot {
 
 /*
     *
-    * Структура, хранящая параметры задачи
+    * Структура, определяющая, загружаем или вычисляем вероятности рассеяния
     *
 */
-struct Params {
-    Files files;
 
-    bool load; // загружать из файла или считать вероятности
-
-    Phonons phonons;
-    Probability probability;
-    Fields fields;
-    Bzone bzone;
-    Plot plot;
-    Model model;
+namespace config {
+extern Files files;
+extern Phonons phonons;
+extern Probability probability;
+extern Fields fields;
+extern Bzone bzone;
+extern Plot plot;
+extern Model model;
 };
-
-void set_init_params(Params & params);
 
 /*
     *
@@ -85,12 +77,6 @@ double energy(Point p);
     *
 */
 double energy_psi(double p, double psi);
-/*
-    *
-    * Производная энергии по модулю импульса (в полярных координатах)
-    *
-*/
-// double d_energy_psi(double p, double psi);
 
 /*
     *
@@ -104,32 +90,25 @@ vec2 velocity(Point p);
     * Правые части уравнений движения
     *
 */
-vec2 forces(Point p, double t, const Params & params);
+vec2 forces(Point p, double t);
 
 /*
     *
     * Границы первой зоны Бриллюэна
     *
 */
-double pmax(double psi, const Params & params);
+double pmax(double psi);
 
 /*
     *
     * Функция, приводящая квазиимпульс к первой зоне Бриллюэна
     *
 */
-Point to_first_bz(Point p, const Params & params);
+Point to_first_bz(Point p);
 
 /*
     *
     * Возвращает точку с индексами (k,m)
     *
 */
-Point point_k_m(int k, int m, const Params & params);
-
-/*
-    *
-    * Массив координат точек в импульсном пространстве
-    *
-*/
-void make_grid(Point * p_grid, const Params & params);
+Point point_k_m(int k, int m);

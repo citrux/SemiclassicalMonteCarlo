@@ -15,10 +15,12 @@ void results_to_file(const string & filename, int var_mas_count,
     ofstream f;
     f.open(filename);
 
-    /*f << "Exc: " << params.Exc << "; Eyc: " << params.Eyc << "; wlo_max: " <<
-    params.wlo_max << "; wla_max: " << params.wla_max << "; low: " << low << ";
+    /*f << "Exc: " << config::Exc << "; Eyc: " << config::Eyc << "; wlo_max: "
+    <<
+    config::wlo_max << "; wla_max: " << config::wla_max << "; low: " << low <<
+    ";
     high: " << high << "; step: " << step << "; num_threads: " <<
-    params.model.threads << endl;
+    config::model.threads << endl;
     f << "Time info: " << total_time << endl;*/
     f << "#  E_y\tj_x\tj_y\tsigma_x\tsigma_y\ttau\tn_opt\tn_ac" << endl;
     for (int i = 0; i < var_mas_count; i++) {
@@ -53,7 +55,9 @@ vec2 to_vec2(const string & str) {
     return v;
 }
 
-void load_config(const string & filename, Params & params) {
+void load_config(const string & filename) {
+
+    using namespace config;
 
     logger(LOG_INFO, "load config from '" + filename + "'...\t");
 
@@ -65,67 +69,68 @@ void load_config(const string & filename, Params & params) {
         exit(1);
     }
 
-    params.files.load = reader.GetInteger("files", "load", 0);
-    params.files.probability = reader.Get("files", "probability", "UNKNOWN");
-    params.files.result = reader.Get("files", "result", "UNKNOWN");
+    files.load = reader.GetInteger("files", "load", 0);
+    files.probability = reader.Get("files", "probability", "UNKNOWN");
+    files.result = reader.Get("files", "result", "UNKNOWN");
 
-    params.phonons.beta = reader.GetReal("phonons", "beta", 0);
-    params.phonons.wla_max = reader.GetReal("phonons", "wla_max", 0);
-    params.phonons.wlo_max = reader.GetReal("phonons", "wlo_max", 0);
-    params.phonons.T = reader.GetReal("phonons", "T", -1);
+    phonons.beta = reader.GetReal("phonons", "beta", 0);
+    phonons.wla_max = reader.GetReal("phonons", "wla_max", 0);
+    phonons.wlo_max = reader.GetReal("phonons", "wlo_max", 0);
+    phonons.T = reader.GetReal("phonons", "T", -1);
 
-    params.fields.E0 = to_vec2(reader.Get("fields", "E0", "0 0"));
-    params.fields.E1 = to_vec2(reader.Get("fields", "E1", "0 0"));
-    params.fields.E2 = to_vec2(reader.Get("fields", "E2", "0 0"));
-    params.fields.H = reader.GetReal("fields", "H", 0);
-    params.fields.omega1 = reader.GetReal("fields", "omega1", 0);
-    params.fields.omega2 = reader.GetReal("fields", "omega2", 0);
-    params.fields.phi1 = reader.GetReal("fields", "phi1", 0);
-    params.fields.phi2 = reader.GetReal("fields", "phi2", 0);
-    params.fields.phi = reader.GetReal("fields", "phi", 0);
+    fields.E0 = to_vec2(reader.Get("fields", "E0", "0 0"));
+    fields.E1 = to_vec2(reader.Get("fields", "E1", "0 0"));
+    fields.E2 = to_vec2(reader.Get("fields", "E2", "0 0"));
+    fields.H = reader.GetReal("fields", "H", 0);
+    fields.omega1 = reader.GetReal("fields", "omega1", 0);
+    fields.omega2 = reader.GetReal("fields", "omega2", 0);
+    fields.phi1 = reader.GetReal("fields", "phi1", 0);
+    fields.phi2 = reader.GetReal("fields", "phi2", 0);
+    fields.phi = reader.GetReal("fields", "phi", 0);
 
-    params.bzone.A = to_point(reader.Get("bzone", "A", "0 0"));
-    params.bzone.B = to_point(reader.Get("bzone", "B", "0 0"));
-    params.bzone.D = to_point(reader.Get("bzone", "D", "0 0"));
-    params.bzone.C = params.bzone.B + (params.bzone.D - params.bzone.A);
+    bzone.A = to_point(reader.Get("bzone", "A", "0 0"));
+    bzone.B = to_point(reader.Get("bzone", "B", "0 0"));
+    bzone.D = to_point(reader.Get("bzone", "D", "0 0"));
+    bzone.C = bzone.B + (bzone.D - bzone.A);
 
-    params.probability.p_error = reader.GetReal("probability", "p_error", 0);
-    params.probability.p_points =
-        reader.GetInteger("probability", "p_points", 0);
-    params.probability.n_integral =
-        reader.GetInteger("probability", "n_integral", 0);
-    params.probability.e_points =
-        reader.GetInteger("probability", "e_points", 0);
-    params.probability.probability = new double[params.probability.e_points];
-    params.probability.energy = new double[params.probability.e_points];
+    probability.momentum_samples =
+        reader.GetReal("probability", "momentum_samples", 0);
+    probability.momentum_error =
+        reader.GetReal("probability", "momentum_error", 0);
+    probability.probability_error =
+        reader.GetInteger("probability", "probability_error", 0);
+    probability.energy_samples =
+        reader.GetInteger("probability", "energy_samples", 0);
+    probability.probability = new double[probability.energy_samples];
+    probability.energy = new double[probability.energy_samples];
 
-    params.model.dt = reader.GetReal("model", "dt", 1e-4);
-    params.model.all_time = reader.GetReal("model", "all_time", 0);
-    params.model.threads = reader.GetInteger("model", "threads", 1);
-    params.model.particles = reader.GetInteger("model", "particles", 1);
+    model.dt = reader.GetReal("model", "dt", 1e-4);
+    model.all_time = reader.GetReal("model", "all_time", 0);
+    model.threads = reader.GetInteger("model", "threads", 1);
+    model.particles = reader.GetInteger("model", "particles", 1);
 
-    params.plot.low = reader.GetReal("plotting", "low", 0);
-    params.plot.high = reader.GetReal("plotting", "high", 0);
-    params.plot.step = reader.GetReal("plotting", "step", 0);
-    params.plot.num_var = reader.GetInteger("plotting", "num_var", -1);
+    plot.low = reader.GetReal("plotting", "low", 0);
+    plot.high = reader.GetReal("plotting", "high", 0);
+    plot.step = reader.GetReal("plotting", "step", 0);
+    plot.num_var = reader.GetInteger("plotting", "num_var", -1);
 
     logger(LOG_OK, "[DONE]\n");
 }
 
-int get_var_mas_count(const Params & params) {
-    double low = params.plot.low, high = params.plot.high,
-           step = params.plot.step;
+int get_var_mas_count() {
+    double low = config::plot.low, high = config::plot.high,
+           step = config::plot.step;
     int var_mas_count = (fabs(high - low) / step) + 1;
     return var_mas_count;
 }
 
-void set_var_mas(const Params & params, int var_mas_count, double * var_mas) {
-    double low = params.plot.low, step = params.plot.step;
+void set_var_mas(int var_mas_count, double * var_mas) {
+    double low = config::plot.low, step = config::plot.step;
     for (int i = 0; i < var_mas_count; i++)
         var_mas[i] = low + step * i;
 }
 
-void var_value_plot(int num_param, double var_value, Params & params) {
+void var_value_plot(int num_param, double var_value) {
     switch (num_param) {
     default:
         logger(LOG_ERROR, "Error!");

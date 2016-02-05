@@ -1,24 +1,17 @@
-/*
-    *
-    * Структура, хранящая компоненты импульса
-    *
-*/
-
 struct vec2 {
     double x;
     double y;
-    vec2() : x(0), y(0) {};
-    vec2(double a, double b) : x(a), y(b) {};
+    vec2() : x(0), y(0){};
+    vec2(double a, double b) : x(a), y(b){};
 };
 
 struct Point {
     double x;
     double y;
-    Point() : x(0), y(0) {};
-    Point(double a, double b) : x(a), y(b) {};
-    Point(const vec2 & p) : x(p.x), y(p.y) {};
+    Point() : x(0), y(0){};
+    Point(double a, double b) : x(a), y(b){};
+    Point(const vec2 & p) : x(p.x), y(p.y){};
 };
-
 
 inline vec2 operator-(const vec2 & v) { return {-v.x, -v.y}; }
 

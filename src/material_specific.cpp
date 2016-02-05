@@ -1,6 +1,6 @@
+#include <string>
 #include "material_specific.h"
 #include "logger.h"
-#include <string>
 using namespace std;
 /*
     *
@@ -19,16 +19,6 @@ double energy_psi(double p, double psi) {
 
 /*
     *
-    * Производная энергии по модулю импульса (в полярных координатах)
-    *
-*/
-double d_energy_psi(double p, double psi) {
-    return (sin(p * cos(psi)) * cos(psi) * cos(p * sin(psi)) +
-            cos(p * cos(psi)) * sin(p * sin(psi)) * sin(psi));
-}
-
-/*
-    *
     * Компоненты скорости
     *
 */
@@ -39,17 +29,17 @@ vec2 velocity(Point p) { return {sin(p.x) * cos(p.y), cos(p.x) * sin(p.y)}; }
     * Правые части уравнений движения
     *
 */
-vec2 forces(Point p, double t, const Params & params) {
-    double phi = params.fields.phi, phi1 = params.fields.phi1,
-           phi2 = params.fields.phi2;
-    double omega1 = params.fields.omega1, omega2 = params.fields.omega2;
-    vec2 E0 = params.fields.E0;
-    vec2 E1 = {params.fields.E1.x * cos(omega1 * t),
-               params.fields.E1.y * cos(omega1 * t + phi1)};
-    vec2 E2 = {params.fields.E2.x * cos(omega2 * t + phi),
-               params.fields.E2.y * cos(omega2 * t + phi + phi2)};
+vec2 forces(Point p, double t) {
+    double phi = config::fields.phi, phi1 = config::fields.phi1,
+           phi2 = config::fields.phi2;
+    double omega1 = config::fields.omega1, omega2 = config::fields.omega2;
+    vec2 E0 = config::fields.E0;
+    vec2 E1 = {config::fields.E1.x * cos(omega1 * t),
+               config::fields.E1.y * cos(omega1 * t + phi1)};
+    vec2 E2 = {config::fields.E2.x * cos(omega2 * t + phi),
+               config::fields.E2.y * cos(omega2 * t + phi + phi2)};
     vec2 ov = {velocity(p).y, -velocity(p).x};
-    return E0 + E1 + E2 + params.fields.H * ov;
+    return E0 + E1 + E2 + config::fields.H * ov;
 }
 
 /*
@@ -57,15 +47,15 @@ vec2 forces(Point p, double t, const Params & params) {
     * Границы первой зоны Бриллюэна
     *
 */
-double pmax(double psi, const Params & params) {
+double pmax(double psi) {
     // требуется найти пересечение луча с границей четырёхугольника
     Point O = {0, 0};
     // Считаем расстояние от начала координат до точки пересечения луча с
     // отрезками
-    vec2 OA = params.bzone.A - O;
-    vec2 OB = params.bzone.B - O;
-    vec2 OC = params.bzone.C - O;
-    vec2 OD = params.bzone.D - O;
+    vec2 OA = config::bzone.A - O;
+    vec2 OB = config::bzone.B - O;
+    vec2 OC = config::bzone.C - O;
+    vec2 OD = config::bzone.D - O;
     vec2 l = {cos(psi), sin(psi)};
 
     double res = -1;
@@ -89,10 +79,10 @@ double pmax(double psi, const Params & params) {
     * Функция, приводящая квазиимпульс к первой зоне Бриллюэна
     *
 */
-Point to_first_bz(Point p, const Params & params) {
+Point to_first_bz(Point p) {
     // базис обратной решётки
-    vec2 b = params.bzone.B - params.bzone.A;
-    vec2 d = params.bzone.D - params.bzone.A;
+    vec2 b = config::bzone.B - config::bzone.A;
+    vec2 d = config::bzone.D - config::bzone.A;
 
     // строим взаимный базис
     vec2 bc = ort(b - dot(b, ort(d)) * ort(d));
@@ -101,7 +91,7 @@ Point to_first_bz(Point p, const Params & params) {
     vec2 dc = ort(d - dot(d, ort(b)) * ort(b));
     dc = dc / dot(dc, d);
 
-    vec2 pr = p - params.bzone.A;
+    vec2 pr = p - config::bzone.A;
 
     // находим разложение по базису, используя взаимный базис
     int nb = floor(dot(pr, bc));
@@ -109,3 +99,11 @@ Point to_first_bz(Point p, const Params & params) {
 
     return p - nb * b - nd * d;
 }
+
+Files config::files;
+Phonons config::phonons;
+Probability config::probability;
+Fields config::fields;
+Bzone config::bzone;
+Plot config::plot;
+Model config::model;
