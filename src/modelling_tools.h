@@ -1,6 +1,7 @@
 #include <climits>
 #include <cstdio>
 #include "text_files.h"
+#include "linalg.h"
 
 struct Result_one_point {
     double result_value_mas_x;
@@ -32,4 +33,4 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
 
 Result_one_point one_plot_point(double beta, Point * p_grid, double * WerOpt,
                                 double * WerAc, double var_value,
-                                const string & filename_base);
+                                const std::string & filename_base);

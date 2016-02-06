@@ -1,5 +1,7 @@
 #include "modelling_tools.h"
 #include "logger.h"
+#include "config.h"
+#include "find_probability.h"
 using namespace std;
 
 int main() {
@@ -11,6 +13,8 @@ int main() {
     load_config(config);
 
     set_probabilities();
+
+    logger(LOG_INFO, "> Get probability: W(1.2) = " + to_string(get_probability(1.2)) + "\n");
 
     // Result_one_point result_one_point;
 

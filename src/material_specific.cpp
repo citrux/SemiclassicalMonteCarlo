@@ -1,5 +1,6 @@
 #include <string>
 #include "material_specific.h"
+#include "config.h"
 #include "logger.h"
 using namespace std;
 /*
@@ -99,11 +100,3 @@ Point to_first_bz(Point p) {
 
     return p - nb * b - nd * d;
 }
-
-Files config::files;
-Phonons config::phonons;
-Probability config::probability;
-Fields config::fields;
-Bzone config::bzone;
-Plot config::plot;
-Model config::model;

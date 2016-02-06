@@ -1,6 +1,13 @@
 #include <ctime>
 #include "modelling_tools.h"
 #include "logger.h"
+#include "config.h"
+#include "material_specific.h"
+#include "find_probability.h"
+
+double distrib_function(double p, double psi) {
+    return exp(-energy_psi(p, psi) / config::phonons.T) * p;
+}
 
 double random_uniform(unsigned int & x1, unsigned int & y1, unsigned int & z1,
                       unsigned int & w1) {

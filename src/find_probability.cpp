@@ -1,6 +1,9 @@
 #include <fstream>
 #include "find_probability.h"
+#include "material_specific.h"
 #include "logger.h"
+#include "config.h"
+#include "text_files.h"
 
 using namespace std;
 
@@ -113,26 +116,6 @@ void calculate_probability(double * output) {
     // logger(LOG_INFO, "calc finished\n");
 }
 
-void load_arrays(const string & filename, vector<double *> arrays, int n) {
-    ifstream f;
-    f.open(filename);
-    for (int i = 0; i < n; ++i)
-        for (double * a : arrays)
-            f >> a[i];
-    f.close();
-}
-
-void save_arrays(const string & filename, vector<double *> arrays, int n) {
-    ofstream f;
-    f.open(filename);
-    for (int i = 0; i < n; ++i) {
-        for (double * a : arrays)
-            f << a[i] << "\t";
-        f << "\n";
-    }
-    f.close();
-}
-
 void set_probabilities() {
     if (config::files.load) {
         load_arrays(
@@ -163,8 +146,4 @@ double get_probability(double energy) {
 
     return (1 - w) * config::probability.probability[i] +
            w * config::probability.probability[j];
-}
-
-double distrib_function(double p, double psi) {
-    return exp(-energy_psi(p, psi) / config::phonons.T) * p;
 }
