@@ -8,8 +8,10 @@ void results_to_file(const std::string & filename_res, int var_mas_count,
                      double * std_values_mas_y, double * result_av_time,
                      double * result_nOpt, double * result_nAc);
 
-void load_arrays(const std::string & filename, std::vector<double *> arrays, int n);
-void save_arrays(const std::string & filename, std::vector<double *> arrays, int n);
+void load_arrays(const std::string & filename, std::vector<double *> arrays,
+                 int n);
+void save_arrays(const std::string & filename, std::vector<double *> arrays,
+                 int n);
 
 double str_to_double(const std::string & str);
 int get_var_mas_count();

@@ -63,5 +63,4 @@ extern Plot plot;
 extern Model model;
 };
 
-
 void load_config(const std::string & filename);

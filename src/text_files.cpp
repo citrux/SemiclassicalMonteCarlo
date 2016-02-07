@@ -33,7 +33,10 @@ void results_to_file(const string & filename, int var_mas_count,
                      double * result_nOpt, double * result_nAc) {
     logger(LOG_INFO, "write results to '" + filename + "'...");
 
-    save_arrays(filename, {var_mas, result_value_mas_x, result_value_mas_y, std_values_mas_x, std_values_mas_y, result_av_time, result_nOpt, result_nAc}, var_mas_count);
+    save_arrays(filename, {var_mas, result_value_mas_x, result_value_mas_y,
+                           std_values_mas_x, std_values_mas_y, result_av_time,
+                           result_nOpt, result_nAc},
+                var_mas_count);
 
     logger(LOG_OK, "\t[DONE]\n");
 }
@@ -44,7 +47,6 @@ double str_to_double(const string & str) {
     istream >> res;
     return res;
 }
-
 
 int get_var_mas_count() {
     double low = config::plot.low, high = config::plot.high,

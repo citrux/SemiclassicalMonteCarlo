@@ -14,7 +14,6 @@ Bzone config::bzone;
 Plot config::plot;
 Model config::model;
 
-
 Point to_point(const string & str) {
     istringstream istream(str);
     Point p;

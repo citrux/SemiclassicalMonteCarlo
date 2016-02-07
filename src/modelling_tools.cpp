@@ -19,12 +19,38 @@ double random_uniform(unsigned int & x1, unsigned int & y1, unsigned int & z1,
     return ((double) w1) / ((double) UINT_MAX);
 }
 
-/*void RNGtest(double * mas, unsigned int * seed, int idx)
-{
-    unsigned int x1, y1, z1, w1; x1 = seed[idx]; y1 = 362436069; z1 = 521288629;
-w1 = 88675123;
-    mas[idx] = random_uniform(x1, y1, z1, w1);
-}*/
+double inverse_function(double psi, double prob) {
+    int n = 1000;
+    double * grid = new double[n + 1];
+    double * int_distrib = new double[n + 1];
+    double p = pmax(psi), step = p / n;
+
+    grid[0] = 0;
+    int_distrib[0] = 0;
+    // табулируем интегральную функцию
+    for (int i = 1; i <= n; ++i) {
+        grid[i] = grid[i - 1] + step;
+        int_distrib[i] =
+            int_distrib[i - 1] + distrib_function(grid[i], psi) * step;
+    }
+
+    // нормировка
+    for (int i = 1; i <= n; ++i) {
+        int_distrib[i] /= int_distrib[n];
+    }
+
+    // бинпоиск
+    int i = 0, j = n;
+    while (j - i > 1) {
+        int k = (i + j) / 2;
+        if (int_distrib[k] > prob)
+            j = k;
+        else
+            i = k;
+    }
+    double w = (prob - int_distrib[i]) / (int_distrib[j] - int_distrib[i]);
+    return (1 - w) * grid[i] + w * grid[j];
+}
 
 void runge(Point & p, double t) {
     vec2 k1, k2, k3, k4;
@@ -40,20 +66,10 @@ void runge(Point & p, double t) {
 
 Point init_dist(unsigned int & x1, unsigned int & y1, unsigned int & z1,
                 unsigned int & w1) {
-    double psi;
-    double p;
-    double z;
-    double f;
-    Point point;
-    do {
-        psi = 2 * M_PI * random_uniform(x1, y1, z1, w1);
-        p = pmax(psi) * random_uniform(x1, y1, z1, w1);
-        z = random_uniform(x1, y1, z1, w1);
-        f = distrib_function(p, psi);
-    } while (z >= f);
-    point.x = p * cos(psi);
-    point.y = p * sin(psi);
-    return point;
+    double psi = 2 * M_PI * random_uniform(x1, y1, z1, w1);
+    double z = random_uniform(x1, y1, z1, w1);
+    double p = inverse_function(psi, z);
+    return {p * cos(psi), p * sin(psi)};
 }
 
 double Mean(double * arr, int count) {
