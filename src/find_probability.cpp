@@ -7,11 +7,11 @@
 
 using namespace std;
 
-vector<Point> momentums_with_energy_in_direction(double psi,
+vector<Point> momentums_with_energy_in_direction(double theta,
                                                  double energy_value) {
     int n = config::probability.momentum_samples;
-    vec2 dir = {cos(psi), sin(psi)};
-    vec2 step = pmax(psi) * dir / n;
+    vec2 dir = {cos(theta), sin(theta)};
+    vec2 step = pmax(theta) * dir / n;
     vector<Point> ps;
     Point O = {0, 0};
 
@@ -77,26 +77,26 @@ void calculate_probability(double * output) {
         int n = 500;
         int count = 12;
         while (fabs(output[i] - output_old) / output_old > 1e-5 && count) {
-            double dpsi = 2 * M_PI / n;
+            double dtheta = 2 * M_PI / n;
             output_old = output[i];
             output[i] = 0;
             // logger(LOG_INFO, to_string(e) + " " +to_string(n) + " " +
             // to_string(output_old) + "\n");
-            for (double psi = 0; psi < 2 * M_PI; psi += dpsi) {
+            for (double theta = 0; theta < 2 * M_PI; theta += dtheta) {
                 // logger(LOG_INFO, to_string(1.0 * j /
                 // config::output.n_integral) + "\n");
-                curr = momentums_with_energy_in_direction(psi, e);
+                curr = momentums_with_energy_in_direction(theta, e);
 
-                if (psi > 0) {
+                if (theta > 0) {
                     for (size_t k = curr.size(); k < prev.size(); ++k) {
-                        vec2 dir = {cos(psi - dpsi), sin(psi - dpsi)};
-                        Point end = pmax(psi - dpsi) * dir;
+                        vec2 dir = {cos(theta - dtheta), sin(theta - dtheta)};
+                        Point end = pmax(theta - dtheta) * dir;
                         output[i] += integrate(prev[k], end, e);
                     }
 
                     for (size_t k = prev.size(); k < curr.size(); ++k) {
-                        vec2 dir = {cos(psi), sin(psi)};
-                        Point start = pmax(psi) * dir;
+                        vec2 dir = {cos(theta), sin(theta)};
+                        Point start = pmax(theta) * dir;
                         output[i] += integrate(start, curr[k], e);
                     }
 

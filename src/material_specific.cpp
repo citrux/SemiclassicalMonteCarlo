@@ -14,8 +14,8 @@ double energy(Point p) { return (1 - cos(p.x) * cos(p.y)); }
     * Выражение для энергетического спектра (в полярных координатах)
     *
 */
-double energy_psi(double p, double psi) {
-    return (1 - cos(p * cos(psi)) * cos(p * sin(psi)));
+double energy_theta(double p, double theta) {
+    return (1 - cos(p * cos(theta)) * cos(p * sin(theta)));
 }
 
 /*
@@ -48,7 +48,7 @@ vec2 forces(Point p, double t) {
     * Границы первой зоны Бриллюэна
     *
 */
-double pmax(double psi) {
+double pmax(double theta) {
     // требуется найти пересечение луча с границей четырёхугольника
     Point O = {0, 0};
     // Считаем расстояние от начала координат до точки пересечения луча с
@@ -57,7 +57,7 @@ double pmax(double psi) {
     vec2 OB = config::bzone.B - O;
     vec2 OC = config::bzone.C - O;
     vec2 OD = config::bzone.D - O;
-    vec2 l = {cos(psi), sin(psi)};
+    vec2 l = {cos(theta), sin(theta)};
 
     double res = -1;
 

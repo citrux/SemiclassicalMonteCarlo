@@ -16,7 +16,7 @@ double energy(Point p);
     * Выражение для энергетического спектра (в полярных координатах)
     *
 */
-double energy_psi(double p, double psi);
+double energy_theta(double p, double theta);
 
 /*
     *
@@ -37,7 +37,7 @@ vec2 forces(Point p, double t);
     * Границы первой зоны Бриллюэна
     *
 */
-double pmax(double psi);
+double pmax(double theta);
 
 /*
     *

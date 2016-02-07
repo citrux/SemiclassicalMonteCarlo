@@ -5,8 +5,8 @@
 #include "material_specific.h"
 #include "find_probability.h"
 
-double distrib_function(double p, double psi) {
-    return exp(-energy_psi(p, psi) / config::phonons.T) * p;
+double distrib_function(double p, double theta) {
+    return exp(-energy_theta(p, theta) / config::phonons.T) * p;
 }
 
 double random_uniform(unsigned int & x1, unsigned int & y1, unsigned int & z1,
@@ -29,11 +29,11 @@ double inverse_function_angle(double prob) {
         angle_int_distrib[0] = 0;
         for (int i = 1; i <= n; ++i)
         {
-            double psi = 2 * M_PI * i / n;
+            double theta = 2 * M_PI * i / n;
             double momentum_int = 0;
-            double step = pmax(psi) / m;
+            double step = pmax(theta) / m;
             for (int j = 0; j < m; ++j)
-                momentum_int += distrib_function((j + 0.5) * step, psi) * step;
+                momentum_int += distrib_function((j + 0.5) * step, theta) * step;
 
             angle_int_distrib[i] = angle_int_distrib[i-1] + momentum_int;
         }
@@ -58,16 +58,16 @@ double inverse_function_angle(double prob) {
     return (i + w) * 2 * M_PI / n;
 }
 
-double inverse_function_momentum(double psi, double prob) {
+double inverse_function_momentum(double theta, double prob) {
     int n = 1000;
     double * int_distrib = new double[n + 1];
-    double p = pmax(psi), step = p / n;
+    double p = pmax(theta), step = p / n;
 
     int_distrib[0] = 0;
     // табулируем интегральную функцию
     for (int i = 1; i <= n; ++i) {
         int_distrib[i] =
-            int_distrib[i - 1] + distrib_function((i - 0.5) * step, psi) * step;
+            int_distrib[i - 1] + distrib_function((i - 0.5) * step, theta) * step;
     }
 
     // нормировка
@@ -103,10 +103,10 @@ void runge(Point & p, double t) {
 Point init_dist(unsigned int & x1, unsigned int & y1, unsigned int & z1,
                 unsigned int & w1) {
     double r = random_uniform(x1, y1, z1, w1);
-    double psi = inverse_function_angle(r);
+    double theta = inverse_function_angle(r);
     double z = random_uniform(x1, y1, z1, w1);
-    double p = inverse_function_momentum(psi, z);
-    return {p * cos(psi), p * sin(psi)};
+    double p = inverse_function_momentum(theta, z);
+    return {p * cos(theta), p * sin(theta)};
 }
 
 double Mean(double * arr, int count) {
@@ -169,7 +169,7 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
 
     Point p = init_dist(x1, y1, z1, w1);
     double p1 = sqrt(p.x * p.x + p.y * p.y);
-    double psi = atan2(p.y, p.x);
+    double theta = atan2(p.y, p.x);
 
     double t = 0.0;
     double wsum = 0.0;
@@ -217,14 +217,14 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
                 flag = false;
                 iCount = 0;
                 while (!flag && iCount < 15) {
-                    psi = 2 * M_PI *
+                    theta = 2 * M_PI *
                           random_uniform(x1, y1, z1, w1); // случайным образом
                     // разыгрываем фазу
                     // квазиимпульса
-                    p_max = pmax(psi); // максимальное значение
+                    p_max = pmax(theta); // максимальное значение
                     // модуля квазиимпульса
-                    // в направлении угла psi
-                    p = momentums_with_energy_in_direction(psi,
+                    // в направлении угла theta
+                    p = momentums_with_energy_in_direction(theta,
                                                            energy_value)[0];
                     // если p1 существует, то flag = true, и мы правильно
                     // подобрали угол рассеяния, поэтому выходим из цикла
@@ -241,15 +241,15 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
                     iCount = 0;
 
                     while (!flag && iCount < 15) {
-                        psi = 2 * M_PI * random_uniform(x1, y1, z1,
+                        theta = 2 * M_PI * random_uniform(x1, y1, z1,
                                                         w1); // случайным
                                                              // образом
                         // разыгрываем фазу
                         // квазиимпульса
-                        p_max = pmax(psi); // максимальное значение
+                        p_max = pmax(theta); // максимальное значение
                         // модуля квазиимпульса
-                        // в направлении угла psi
-                        p = momentums_with_energy_in_direction(psi,
+                        // в направлении угла theta
+                        p = momentums_with_energy_in_direction(theta,
                                                                energy_value)[0];
                         // если p1 существует, то flag = true, и мы правильно
                         // подобрали угол рассеяния, поэтому выходим из цикла

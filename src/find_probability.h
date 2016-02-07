@@ -4,7 +4,7 @@
 #include <omp.h>
 #include "linalg.h"
 
-std::vector<Point> momentums_with_energy_in_direction(double psi,
+std::vector<Point> momentums_with_energy_in_direction(double theta,
                                                       double energy_value);
 
 void set_probabilities();
