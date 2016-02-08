@@ -5,7 +5,7 @@
 void results_to_file(const std::string & filename_res, int var_mas_count,
                      double * var_mas, double * result_value_mas_x,
                      double * result_value_mas_y, double * std_values_mas_x,
-                     double * std_values_mas_y, double * result_av_time,
+                     double * std_values_mas_y, double * result_tau,
                      double * result_nOpt, double * result_nAc);
 
 void load_arrays(const std::string & filename, std::vector<double *> arrays,

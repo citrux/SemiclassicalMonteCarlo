@@ -3,24 +3,23 @@
 #include "text_files.h"
 #include "linalg.h"
 
-struct Result_one_point {
-    double result_value_mas_x;
-    double result_value_mas_y;
-    double std_values_mas_x;
-    double std_values_mas_y;
-    double result_av_time;
-    double result_nOpt;
-    double result_nAc;
+struct Result {
+    vec2 current_mean;
+    vec2 current_std;
+    double tau;
+    double n_opt;
+    double n_ac;
 };
 
+enum Variable { VAR_E0X, VAR_E0Y, VAR_E1X, VAR_E1Y, VAR_E2X, VAR_E2Y };
 double random_uniform(unsigned int & x1, unsigned int & y1, unsigned int & z1,
                       unsigned int & w1);
 void runge(Point & p, double t);
 Point init_dist(unsigned int & x1, unsigned int & y1, unsigned int & z1,
                 unsigned int & w1);
-double Mean(double * arr, int count);
-double Mean(unsigned int * arr, int count);
-double Std(double * arr, int count);
+double mean(double * arr, int count);
+double mean(unsigned int * arr, int count);
+double sd(double * arr, int count);
 
 void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
                double * dev_average_time_array, unsigned int * dev_nAc,
@@ -31,6 +30,4 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
                Point * p_grid, double * res_ac, double * res_opt,
                double * px_log, double * py_log, int num_logs);
 
-Result_one_point one_plot_point(double beta, Point * p_grid, double * WerOpt,
-                                double * WerAc, double var_value,
-                                const std::string & filename_base);
+Result result(Variable var, double value);

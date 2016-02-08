@@ -29,12 +29,12 @@ void save_arrays(const string & filename, vector<double *> arrays, int n) {
 void results_to_file(const string & filename, int var_mas_count,
                      double * var_mas, double * result_value_mas_x,
                      double * result_value_mas_y, double * std_values_mas_x,
-                     double * std_values_mas_y, double * result_av_time,
+                     double * std_values_mas_y, double * result_tau,
                      double * result_nOpt, double * result_nAc) {
     logger(LOG_INFO, "write results to '" + filename + "'...");
 
     save_arrays(filename, {var_mas, result_value_mas_x, result_value_mas_y,
-                           std_values_mas_x, std_values_mas_y, result_av_time,
+                           std_values_mas_x, std_values_mas_y, result_tau,
                            result_nOpt, result_nAc},
                 var_mas_count);
 

@@ -3,19 +3,24 @@
 #include "config.h"
 #include "logger.h"
 using namespace std;
+double vf = 1e6, hbar = 6.5e-16, d= 2e-8, eps0 = 0.059, eps1 = 0.029, g = pow(eps1/eps0, 2);
+
 /*
     *
     * Выражение для энергетического спектра (в декартовых координатах)
     *
 */
-double energy(Point p) { return (1 - cos(p.x) * cos(p.y)); }
+double energy(Point p) {
+    double a = vf * hbar / eps0 / d;
+    return eps0 * (sqrt(1 + a * a * p.x * p.x) + g * (1 - cos(p.y)) / sqrt(1 + a * a * p.x * p.x));
+}
 /*
     *
     * Выражение для энергетического спектра (в полярных координатах)
     *
 */
 double energy_theta(double p, double theta) {
-    return (1 - cos(p * cos(theta)) * cos(p * sin(theta)));
+    return energy({p * cos(theta), p * sin(theta)});
 }
 
 /*
@@ -23,7 +28,13 @@ double energy_theta(double p, double theta) {
     * Компоненты скорости
     *
 */
-vec2 velocity(Point p) { return {sin(p.x) * cos(p.y), cos(p.x) * sin(p.y)}; }
+vec2 velocity(Point p) {
+    double a = vf * hbar / eps0 / d;
+    return {
+        vf * a * p.x / sqrt(1 + a * a * p.x * p.x) * (1 - g * (1 - cos(p.y)) / (1 + a * a * p.y * p.y)),
+        g * d * eps0 / hbar / sqrt(1 + a * a * p.x * p.x) * sin(p.y)
+    };
+}
 
 /*
     *

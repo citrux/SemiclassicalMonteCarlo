@@ -47,7 +47,16 @@ inline vec2 ort(const vec2 & v) { return v / len(v); }
 inline vec2 operator-(const Point & end, const Point & start) {
     return {end.x - start.x, end.y - start.y};
 }
-
+inline vec2 & operator+=(vec2 & start, const vec2 & shift) {
+    start.x += shift.x;
+    start.y += shift.y;
+    return start;
+}
+inline vec2 & operator-=(vec2 & start, const vec2 & shift) {
+    start.x -= shift.x;
+    start.y -= shift.y;
+    return start;
+}
 inline Point & operator+=(Point & start, const vec2 & shift) {
     start.x += shift.x;
     start.y += shift.y;
