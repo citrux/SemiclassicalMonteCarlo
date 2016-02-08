@@ -3,7 +3,8 @@
 #include "config.h"
 #include "logger.h"
 using namespace std;
-double vf = 1e6, hbar = 6.5e-16, d= 2e-8, eps0 = 0.059, eps1 = 0.029, g = pow(eps1/eps0, 2);
+double vf = 1e6, hbar = 6.5e-16, d = 2e-8, eps0 = 0.059, eps1 = 0.029,
+       g = pow(eps1 / eps0, 2);
 
 /*
     *
@@ -12,7 +13,8 @@ double vf = 1e6, hbar = 6.5e-16, d= 2e-8, eps0 = 0.059, eps1 = 0.029, g = pow(ep
 */
 double energy(Point p) {
     double a = vf * hbar / eps0 / d;
-    return eps0 * (sqrt(1 + a * a * p.x * p.x) + g * (1 - cos(p.y)) / sqrt(1 + a * a * p.x * p.x));
+    return eps0 * (sqrt(1 + a * a * p.x * p.x) +
+                   g * (1 - cos(p.y)) / sqrt(1 + a * a * p.x * p.x));
 }
 /*
     *
@@ -30,10 +32,9 @@ double energy_theta(double p, double theta) {
 */
 vec2 velocity(Point p) {
     double a = vf * hbar / eps0 / d;
-    return {
-        vf * a * p.x / sqrt(1 + a * a * p.x * p.x) * (1 - g * (1 - cos(p.y)) / (1 + a * a * p.y * p.y)),
-        g * d * eps0 / hbar / sqrt(1 + a * a * p.x * p.x) * sin(p.y)
-    };
+    return {vf * a * p.x / sqrt(1 + a * a * p.x * p.x) *
+                (1 - g * (1 - cos(p.y)) / (1 + a * a * p.y * p.y)),
+            g * d * eps0 / hbar / sqrt(1 + a * a * p.x * p.x) * sin(p.y)};
 }
 
 /*

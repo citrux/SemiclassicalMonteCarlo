@@ -37,8 +37,21 @@ vector<Point> momentums_with_energy_in_direction(double theta,
 }
 
 void get_energy_limits(double & emin, double & emax) {
-    emin = 0;
-    emax = 2;
+    emin = 100;
+    emax = -100;
+    int n = 1000;
+    for (int i = 0; i < n; ++i) {
+        double theta = 2 * M_PI / n;
+        double pm = pmax(theta);
+        for (int j = 0; j < n; ++j) {
+            double p = j * pm / (n - 1);
+            double e = energy_theta(p, theta);
+            if (e < emin)
+                emin = e;
+            if (e > emax)
+                emax = e;
+        }
+    }
 }
 
 Point point_on_contour(Point a, double nrg) {
