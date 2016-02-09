@@ -21,6 +21,7 @@ struct Fields {
 
 struct Bzone {
     Point A, B, C, D;
+    vec2 * basis, *dual_basis;
 };
 
 struct Probability {

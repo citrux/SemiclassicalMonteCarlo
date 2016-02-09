@@ -65,6 +65,18 @@ void load_config(const string & filename) {
     bzone.B = to_point(reader.Get("bzone", "B", "0 0"));
     bzone.D = to_point(reader.Get("bzone", "D", "0 0"));
     bzone.C = bzone.B + (bzone.D - bzone.A);
+    bzone.basis = new vec2[2];
+    bzone.basis[0] = bzone.B - bzone.A;
+    bzone.basis[1] = bzone.D - bzone.A;
+    bzone.dual_basis = new vec2[2];
+    // строим взаимный базис
+    vec2 v =
+        ort(bzone.basis[0] -
+            dot(bzone.basis[0], ort(bzone.basis[1])) * ort(bzone.basis[1]));
+    bzone.dual_basis[0] = v / dot(v, bzone.basis[0]);
+    v = ort(bzone.basis[1] -
+            dot(bzone.basis[1], ort(bzone.basis[0])) * ort(bzone.basis[0]));
+    bzone.dual_basis[1] = v / dot(v, bzone.basis[1]);
 
     probability.momentum_samples =
         reader.GetReal("probability", "momentum_samples", 0);

@@ -93,22 +93,12 @@ double pmax(double theta) {
     *
 */
 Point to_first_bz(Point p) {
-    // базис обратной решётки
-    vec2 b = config::bzone.B - config::bzone.A;
-    vec2 d = config::bzone.D - config::bzone.A;
 
-    // строим взаимный базис
-    vec2 bc = ort(b - dot(b, ort(d)) * ort(d));
-    bc = bc / dot(bc, b);
-
-    vec2 dc = ort(d - dot(d, ort(b)) * ort(b));
-    dc = dc / dot(dc, d);
-
-    vec2 pr = p - config::bzone.A;
+    vec2 pv = p - config::bzone.A;
 
     // находим разложение по базису, используя взаимный базис
-    int nb = floor(dot(pr, bc));
-    int nd = floor(dot(pr, dc));
+    int n1 = floor(dot(pv, config::bzone.dual_basis[0]));
+    int n2 = floor(dot(pv, config::bzone.dual_basis[1]));
 
-    return p - nb * b - nd * d;
+    return p - n1 * config::bzone.basis[0] - n2 * config::bzone.basis[1];
 }
