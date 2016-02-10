@@ -2,6 +2,7 @@
 #include <cstdio>
 #include "text_files.h"
 #include "linalg.h"
+#include "config.h"
 
 struct Result {
     vec2 current_mean;
@@ -11,7 +12,6 @@ struct Result {
     double n_ac;
 };
 
-enum Variable { VAR_E0X, VAR_E0Y, VAR_E1X, VAR_E1Y, VAR_E2X, VAR_E2Y };
 double random_uniform(unsigned int & x1, unsigned int & y1, unsigned int & z1,
                       unsigned int & w1);
 void runge(Point & p, double t);
@@ -30,4 +30,4 @@ void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
                Point * p_grid, double * res_ac, double * res_opt,
                double * px_log, double * py_log, int num_logs);
 
-Result result(Variable var, double value);
+Result result();

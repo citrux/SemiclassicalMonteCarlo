@@ -1,7 +1,7 @@
 #include <ctime>
+#include <fstream>
 #include "modelling_tools.h"
 #include "logger.h"
-#include "config.h"
 #include "material_specific.h"
 #include "find_probability.h"
 
@@ -141,6 +141,7 @@ vec2 mean(vec2 * arr, int count) {
 
     return result / (double) count;
 }
+
 double sd(double * arr, int count) {
     double sum = 0.0;
     double m = mean(arr, count);
@@ -178,10 +179,8 @@ void jobKernel(const Point & init_condition, unsigned int seed, vec2 & current,
     Point p = init_condition;
 
     double t = 0.0;
-    double wsum = 0.0;
     double wla = 0.0;
     double wlo = 0.0;
-    double r = -log(random_uniform(x1, y1, z1, w1));
 
     int n0 = 0;
     n_ac = 0, n_opt = 0;
@@ -189,7 +188,8 @@ void jobKernel(const Point & init_condition, unsigned int seed, vec2 & current,
     double beta_opt = config::phonons.beta;
 
     int t_num = 0;
-
+    std::ofstream f;
+    // f.open("particle.dat");
     while (t < config::model.all_time) {
         v = velocity(p);
 
@@ -202,71 +202,64 @@ void jobKernel(const Point & init_condition, unsigned int seed, vec2 & current,
 
         t += config::model.dt;
 
-        r = -log(random_uniform(x1, y1, z1, w1));
+        // f << t << "\t" << p.x << "\t" <<  v.x << "\n";
+
         double e = energy(p);
-        wlo = config::phonons.wlo_max * get_probability(e - beta_opt);
-        wla = config::phonons.wlo_max * get_probability(e);
-        wsum += (wlo + wla) * config::model.dt;
+        wlo += config::phonons.wlo_max * get_probability(e - beta_opt) *
+               config::model.dt;
+        wla += config::phonons.wla_max * get_probability(e) * config::model.dt;
 
-        if (wsum > r) {
-            n0++; // наращиваем счетчик общего числа рассеяний
-            wsum = 0.0;
-            r = random_uniform(x1, y1, z1, w1);
-            if (wla > r * wsum) {
-                ++n_ac; // наращиваем счетчик рассеяний на акустических фононах
-                e = energy(p);
-                count = 15;
-                while (count) {
-                    double theta =
-                        2 * M_PI *
-                        random_uniform(x1, y1, z1, w1); // случайным образом
-                    // разыгрываем направление квазиимпульса
-                    auto ps = momentums_with_energy_in_direction(theta, e);
-                    if (ps.size()) {
-                        p = ps[0];
-                        break;
-                    }
-                    // если p существует, то мы правильно
-                    // подобрали угол рассеяния, поэтому выходим из цикла
-                    // если за 15 попыток не нашли решение, выходим из цикла
-                    --count;
+        if (wla > random_uniform(x1, y1, z1, w1)) {
+            ++n_ac; // наращиваем счетчик рассеяний на акустических фононах
+            wla = 0.0;
+            e = energy(p);
+            count = 15;
+            while (count) {
+                double theta =
+                    2 * M_PI *
+                    random_uniform(x1, y1, z1, w1); // случайным образом
+                // разыгрываем направление квазиимпульса
+                auto ps = momentums_with_energy_in_direction(theta, e);
+                if (ps.size()) {
+                    p = ps[0];
+                    break;
                 }
-            } else {
-                if ((wlo > 0.0001) && (energy(p) >= beta_opt)) {
-                    ++n_opt; // наращиваем счетчик рассеяний на оптических
-                             // фононах
-                    e = energy(p) - beta_opt;
-                    count = 15;
+                // если p существует, то мы правильно
+                // подобрали угол рассеяния, поэтому выходим из цикла
+                // если за 15 попыток не нашли решение, выходим из цикла
+                --count;
+            }
+        } else if ((wlo > random_uniform(x1, y1, z1, w1)) &&
+                   (energy(p) >= beta_opt)) {
+            ++n_opt; // наращиваем счетчик рассеяний на оптических
+                     // фононах
+            wlo = 0;
+            e = energy(p) - beta_opt;
+            count = 15;
 
-                    while (count) {
-                        double theta =
-                            2 * M_PI * random_uniform(x1, y1, z1,
-                                                      w1); // случайным
-                                                           // образом
-                        // разыгрываем направление
-                        auto ps = momentums_with_energy_in_direction(theta, e);
-                        if (ps.size()) {
-                            p = ps[0];
-                            break;
-                        }
-                        --count;
-                    }
+            while (count) {
+                double theta = 2 * M_PI * random_uniform(x1, y1, z1,
+                                                         w1); // случайным
+                                                              // образом
+                // разыгрываем направление
+                auto ps = momentums_with_energy_in_direction(theta, e);
+                if (ps.size()) {
+                    p = ps[0];
+                    break;
                 }
+                --count;
             }
         }
         t_num++;
     }
+    n0 = n_ac + n_opt;
     current = current / t;
-    tau = t / n0;
+    tau = t / (n0 + 1);
+    // f.close();
     // logger(LOG_INFO, "End jobKernel\n");
 }
 
-Result result(Variable var, double value) {
-    logger(LOG_INFO,
-           "Calculate current density for " + to_string(value) + "...");
-
-    double save = config::fields.E0.x;
-    config::fields.E0.x = value;
+Result result() {
 
     time_t time_load = time(NULL);
 
@@ -294,7 +287,7 @@ Result result(Variable var, double value) {
 
     for (int j = 0; j < config::model.particles; j++) {
         init_condition[j] = init_dist(x1, y1, z1, w1);
-        seed[j] = random_uniform(x1, y1, z1, w1);
+        seed[j] = rand();
     };
 
     omp_set_num_threads(config::model.threads);
@@ -319,7 +312,6 @@ Result result(Variable var, double value) {
     delete[] n_opt;
     delete[] n_ac;
 
-    config::fields.E0.x = save;
     logger(LOG_OK,
            "\t[DONE in " + to_string(time(NULL) - time_load) + " sec]\n");
     return result;

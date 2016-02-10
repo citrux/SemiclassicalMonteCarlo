@@ -28,6 +28,22 @@ vec2 to_vec2(const string & str) {
     return v;
 }
 
+void set_var(const string & varname, double value) {
+    using namespace config;
+    if (varname == "E0.x")
+        fields.E0.x = value;
+    if (varname == "E0.y")
+        fields.E0.y = value;
+    if (varname == "E1.x")
+        fields.E1.x = value;
+    if (varname == "E1.y")
+        fields.E1.y = value;
+    if (varname == "E2.x")
+        fields.E2.x = value;
+    if (varname == "E2.y")
+        fields.E2.y = value;
+}
+
 void load_config(const string & filename) {
 
     using namespace config;
@@ -94,10 +110,10 @@ void load_config(const string & filename) {
     model.threads = reader.GetInteger("model", "threads", 1);
     model.particles = reader.GetInteger("model", "particles", 1);
 
-    plot.low = reader.GetReal("plotting", "low", 0);
-    plot.high = reader.GetReal("plotting", "high", 0);
-    plot.step = reader.GetReal("plotting", "step", 0);
-    plot.num_var = reader.GetInteger("plotting", "num_var", -1);
+    plot.low = reader.GetReal("plot", "low", 0);
+    plot.high = reader.GetReal("plot", "high", 0);
+    plot.step = reader.GetReal("plot", "step", 0);
+    plot.var = reader.Get("plot", "var", "");
 
     logger(LOG_OK, "[DONE]\n");
 }

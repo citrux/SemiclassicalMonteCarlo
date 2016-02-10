@@ -16,12 +16,14 @@ int main() {
     set_probabilities();
 
     ofstream f;
-    f.open("test.dat");
-
-    for (int i = 0; i < 30; ++i) {
-        double e = 2. * i / 30;
-        Result res = result(VAR_E0X, e);
-        f << e << "\t" << res.current_mean.x << "\t" << res.current_mean.y
+    f.open(config::files.result);
+    f << "# " << config::plot.var
+      << "\tjx\tjy\tsigma(jx)\tsigma(jy)\tnopt\tnac\ttau\n";
+    for (double value = config::plot.low; value <= config::plot.high;
+         value += config::plot.step) {
+        set_var(config::plot.var, value);
+        Result res = result();
+        f << value << "\t" << res.current_mean.x << "\t" << res.current_mean.y
           << "\t" << res.current_std.x << "\t" << res.current_std.y << "\t"
           << res.n_opt << "\t" << res.n_ac << "\t" << res.tau << endl;
     }
