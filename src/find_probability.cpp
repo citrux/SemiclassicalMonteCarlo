@@ -37,15 +37,14 @@ vector<Point> momentums_with_energy_in_direction(double theta,
 }
 
 void get_energy_limits(double & emin, double & emax) {
+    using namespace config;
     emin = 100;
     emax = -100;
     int n = 1000;
     for (int i = 0; i < n; ++i) {
-        double theta = 2 * M_PI / n;
-        double pm = pmax(theta);
         for (int j = 0; j < n; ++j) {
-            double p = j * pm / (n - 1);
-            double e = energy_theta(p, theta);
+            double e = energy(bzone.A + bzone.basis[0] * i / n +
+                              bzone.basis[1] * j / n);
             if (e < emin)
                 emin = e;
             if (e > emax)
