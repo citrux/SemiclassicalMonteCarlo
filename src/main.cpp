@@ -5,9 +5,12 @@
 #include "find_probability.h"
 using namespace std;
 
-int main() {
+int main(int argc, char const *argv[]) {
     // задаем параметры задачи
     string config = "config.ini";
+
+    if (argc == 2)
+        config = argv[1];
 
     logger(LOG_INFO, "> Loading config\n");
 

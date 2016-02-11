@@ -8,5 +8,7 @@ $ cd SemiclassicalMonteCarlo
 $ cmake .
 $ make
 $ $EDITOR config.ini
-$ ./scmc
+$ ./scmc config.ini
 ````
+
+Если конфигурационный файл не указан, то будет использован файл `config.ini`.
