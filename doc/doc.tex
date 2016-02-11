@@ -1,0 +1,59 @@
+\documentclass[a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[russian]{babel}
+\usepackage{indentfirst}
+\usepackage{amsfonts}
+\makeatletter
+\newcommand*{\rom}[1]{\expandafter\@slowromancap\romannumeral #1@}
+\makeatother
+\title{Расчёт постоянной составляющей плотности тока в поверхностных сверхрешётках под действием постоянных и переменных электрических полей методом Монте-Карло}
+\author{Абдрахманов В. Л.}
+\begin{document}
+    \maketitle
+    \section{Постановка задачи}
+    Требуется определить постоянные составляющие плотности тока в поверхностных СР под действием постоянных и переменных электрических полей, а также постоянного магнитного, направленного перпендикулярно плоскости СР.
+
+    Задаётся спектр носителей заряда, зона Бриллюэна и внешние поля (напряжённости и частоты).
+
+    Расчёт ведётся методом Монте-Карло: рассматривается движение некоторого количества частиц с больцмановским начальным распределением. Постоянная составляющая плотности тока определяется выражением
+
+    \begin{equation}
+        \langle\vec{j}\rangle = ne\langle\overline{\vec{v}}\rangle,
+    \end{equation}
+    где $\langle \cdot \rangle$ --- среднее по времени, $\overline{\cdot}$ --- среднее по ансамблю.
+
+    \section{Расчёт средних скоростей}
+    Движение частиц описывается \rom{2} законом Ньютона:
+    \begin{equation}
+        \frac{d\vec{p}}{dt} = e(\vec{E}_0 + \vec{E}_1\cos\omega_1t + \vec{E}_2\cos\omega_2t + \vec{v}\times\vec{B})
+    \end{equation}
+    Для удобства перейдём к безразмерным величинам:
+    \begin{equation}
+        \mathfrak{p} = \frac{pd}{\hbar},\quad
+        \mathfrak{t} = \omega t,\quad
+        \Omega_i = \omega_i / \omega,\quad
+        \mathfrak{E_i} = \frac{eE_id}{\hbar\omega},\quad
+        \mathfrak{B} = \frac{eBcd}{\hbar\omega},\quad
+        \mathfrak{v} = v/c,
+    \end{equation}
+    где \( d \) --- характерный размер (период СР), \( \omega \) --- характерная частота. Уравнение движения принимает вид:
+    \begin{equation}
+        \frac{d\vec{\mathfrak{p}}}{d\mathfrak{t}} = \vec{\mathfrak{E}}_0 + \vec{\mathfrak{E}}_1\cos\Omega_1\mathfrak{t} + \vec{\mathfrak{E}}_2\cos\Omega_2\mathfrak{t} + \vec{\mathfrak{v}}\times\vec{\mathfrak{B}}.
+    \end{equation}
+    Помимо полей на импульс влияют рассеяния электронов на фононах.
+
+    Для расчёта зависимости \( \vec{v}(t) \) задаём сетку по времени, в узлах которой рассчитываем значение скорости. Тут стоит отметить, что сетка должна удовлетворять 4 условиям:
+    \begin{enumerate}
+        \item шаг должен быть достаточно мелким, чтобы в зоне Бриллюэна умещалось достаточно много точек для усреднения скорости \( \mathfrak{E}_i\cdot\Delta\mathfrak{t} \ll 1 \);
+        \item изменяющиеся во времени поля должны хорошо интегрироваться для хорошей точности импульса, \( \Omega_i\cdot\Delta\mathfrak{t} \ll 1 \);
+        \item за полное время эксперимента частица должна много раз пролететь зону Бриллюэна, чтобы усреднение было корректным: \( \mathfrak{E}_i\cdot\mathfrak{T} \gg 1 \);
+        \item поле должно совершить достаточно много колебаний \( \Omega_i\cdot\mathfrak{T} \gg 1 \).
+    \end{enumerate}
+    Поэтому шаг и длину сетки можно определять выражениями
+    \begin{equation}
+        \Delta\mathfrak{t} = \frac{1}{100\max\{\mathfrak{E}_i, \Omega_i\}},\quad \mathfrak{T} = \frac{100}{\min\{\mathfrak{E}_i, \Omega_i\}}.
+    \end{equation}
+    \section{Расчёт вероятностей рассеяния}
+    \section{Расчёт двухволнового смешивания}
+\end{document}
