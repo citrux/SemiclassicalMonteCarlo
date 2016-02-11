@@ -166,9 +166,9 @@ vec2 sd(vec2 * arr, int count) {
     return {sqrt(sum1 / (count - 1)), sqrt(sum2 / (count - 1))};
 }
 
-void jobKernel(const Point & init_condition, unsigned int seed, vec2 & current,
+void job_kernel(const Point & init_condition, unsigned int seed, vec2 & current,
                double & tau, unsigned int & n_ac, unsigned int & n_opt) {
-    // logger(LOG_INFO, "Start jobKernel\n");
+    // logger(LOG_INFO, "Start job_kernel\n");
 
     int count;
 
@@ -189,8 +189,6 @@ void jobKernel(const Point & init_condition, unsigned int seed, vec2 & current,
     double beta_opt = config::phonons.beta;
 
     int t_num = 0;
-    std::ofstream f;
-    // f.open("particle.dat");
     while (t < config::model.all_time) {
         v = velocity(p);
 
@@ -203,7 +201,6 @@ void jobKernel(const Point & init_condition, unsigned int seed, vec2 & current,
 
         t += config::model.dt;
 
-        // f << t << "\t" << p.x << "\t" <<  v.x << "\n";
 
         double e = energy(p);
         wlo += config::phonons.wlo_max * get_probability(e - beta_opt) *
@@ -256,13 +253,12 @@ void jobKernel(const Point & init_condition, unsigned int seed, vec2 & current,
     n0 = n_ac + n_opt;
     current = current / t;
     tau = t / (n0 + 1);
-    // f.close();
-    // logger(LOG_INFO, "End jobKernel\n");
+    // logger(LOG_INFO, "End job_kernel\n");
 }
 
 Result result() {
 
-    time_t time_load = time(NULL);
+    time_t time_load = time(nullptr);
 
     vec2 * current =
         new vec2[config::model.particles]; // плотность постоянного тока
@@ -277,7 +273,7 @@ Result result() {
     // акустических фононах
 
     // Инициализируем генератор случайных чисел
-    srand(time(NULL));
+    srand(time(nullptr));
     Point * init_condition = new Point[config::model.particles];
     unsigned int * seed = new unsigned int[config::model.particles];
 
@@ -294,7 +290,7 @@ Result result() {
     omp_set_num_threads(config::model.threads);
 #pragma omp parallel for
     for (int j = 0; j < config::model.particles; j++) {
-        jobKernel(init_condition[j], seed[j], current[j], tau[j], n_ac[j],
+        job_kernel(init_condition[j], seed[j], current[j], tau[j], n_ac[j],
                   n_opt[j]);
     };
 
@@ -316,6 +312,6 @@ Result result() {
     delete[] init_condition;
 
     logger(LOG_OK,
-           "\t[DONE in " + to_string(time(NULL) - time_load) + " sec]\n");
+           "\t[DONE in " + to_string(time(nullptr) - time_load) + " sec]\n");
     return result;
 }
