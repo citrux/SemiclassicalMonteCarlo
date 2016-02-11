@@ -113,7 +113,7 @@ void runge(Point & p, double t) {
 }
 
 double mean(double * arr, int count) {
-    double result;
+    double result = 0;
 
     for (int i = 0; i < count; i++) {
         result += arr[i];
@@ -123,7 +123,7 @@ double mean(double * arr, int count) {
 }
 
 double mean(unsigned int * arr, int count) {
-    double result;
+    double result = 0;
 
     for (int i = 0; i < count; i++) {
         result += arr[i];
