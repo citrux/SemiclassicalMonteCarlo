@@ -21,13 +21,7 @@ double mean(double * arr, int count);
 double mean(unsigned int * arr, int count);
 double sd(double * arr, int count);
 
-void jobKernel(double * dev_average_value_x, double * dev_average_value_y,
-               double * dev_average_time_array, unsigned int * dev_nAc,
-               unsigned int * dev_nOpt,
-
-               double beta, unsigned int rand_init_value, int idx,
-
-               Point * p_grid, double * res_ac, double * res_opt,
-               double * px_log, double * py_log, int num_logs);
+void jobKernel(const Point & init_condition, unsigned int seed, vec2 & current,
+               double & tau, unsigned int & n_ac, unsigned int & n_opt);
 
 Result result();

@@ -86,6 +86,7 @@ double inverse_function_momentum(double theta, double prob) {
             i = k;
     }
     double w = (prob - int_distrib[i]) / (int_distrib[j] - int_distrib[i]);
+    delete[] int_distrib;
     return (i + w) * step;
 }
 
@@ -311,6 +312,8 @@ Result result() {
     delete[] tau;
     delete[] n_opt;
     delete[] n_ac;
+    delete[] seed;
+    delete[] init_condition;
 
     logger(LOG_OK,
            "\t[DONE in " + to_string(time(NULL) - time_load) + " sec]\n");

@@ -21,26 +21,16 @@ int main(int argc, char const * argv[]) {
 
     ofstream f;
     f.open(config::files.result);
-    f << "#"
-      << setw(15) << config::plot.var
-      << setw(15) << "jx"
-      << setw(15) << "jy"
-      << setw(15) << "nopt"
-      << setw(15) << "nac"
-      << setw(15) << "tau"
+    f << "#" << setw(15) << config::plot.var << setw(15) << "jx" << setw(15)
+      << "jy" << setw(15) << "nopt" << setw(15) << "nac" << setw(15) << "tau"
       << endl;
     for (double value = config::plot.low; value <= config::plot.high;
          value += config::plot.step) {
         set_var(config::plot.var, value);
         Result res = result();
-        f << scientific << " "
-          << setw(15) << value
-          << setw(15) << res.current_mean.x
-          << setw(15) << res.current_mean.y
-          << fixed
-          << setw(15) << res.n_opt
-          << setw(15) << res.n_ac
-          << scientific
+        f << scientific << " " << setw(15) << value << setw(15)
+          << res.current_mean.x << setw(15) << res.current_mean.y << fixed
+          << setw(15) << res.n_opt << setw(15) << res.n_ac << scientific
           << setw(15) << res.tau << endl;
     }
 

@@ -24,7 +24,7 @@ inline vec2 operator+(const vec2 & a, const vec2 & b) {
 
 inline vec2 operator-(const vec2 & a, const vec2 & b) { return a + (-b); }
 
-inline vec2 operator*(const vec2 v, double scale) {
+inline vec2 operator*(const vec2 & v, double scale) {
     return {scale * v.x, scale * v.y};
 }
 
