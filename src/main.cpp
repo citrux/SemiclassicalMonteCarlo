@@ -5,7 +5,7 @@
 #include "find_probability.h"
 using namespace std;
 
-int main(int argc, char const *argv[]) {
+int main(int argc, char const * argv[]) {
     // задаем параметры задачи
     string config = "config.ini";
 
