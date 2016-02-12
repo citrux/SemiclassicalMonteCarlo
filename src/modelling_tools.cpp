@@ -167,10 +167,8 @@ vec2 sd(vec2 * arr, int count) {
 }
 
 void job_kernel(const Point & init_condition, unsigned int seed, vec2 & current,
-               double & tau, unsigned int & n_ac, unsigned int & n_opt) {
+                double & tau, unsigned int & n_ac, unsigned int & n_opt) {
     // logger(LOG_INFO, "Start job_kernel\n");
-
-    int count;
 
     vec2 v;
 
@@ -180,8 +178,7 @@ void job_kernel(const Point & init_condition, unsigned int seed, vec2 & current,
     Point p = init_condition;
 
     double t = 0.0;
-    double wla = 0.0;
-    double wlo = 0.0;
+    double wsum = 0.0;
 
     int n0 = 0;
     n_ac = 0, n_opt = 0;
@@ -189,6 +186,7 @@ void job_kernel(const Point & init_condition, unsigned int seed, vec2 & current,
     double beta_opt = config::phonons.beta;
 
     int t_num = 0;
+    double r = -log(random_uniform(x1, y1, z1, w1));
     while (t < config::model.all_time) {
         v = velocity(p);
 
@@ -201,17 +199,22 @@ void job_kernel(const Point & init_condition, unsigned int seed, vec2 & current,
 
         t += config::model.dt;
 
-
         double e = energy(p);
-        wlo += config::phonons.wlo_max * get_probability(e - beta_opt) *
-               config::model.dt;
-        wla += config::phonons.wla_max * get_probability(e) * config::model.dt;
+        double dwlo = config::phonons.wlo_max * get_probability(e - beta_opt);
+        double dwla = config::phonons.wla_max * get_probability(e);
+        wsum += (dwla + dwlo) * config::model.dt;
 
-        if (wla > random_uniform(x1, y1, z1, w1)) {
-            ++n_ac; // наращиваем счетчик рассеяний на акустических фононах
-            wla = 0.0;
-            e = energy(p);
-            count = 15;
+        if (wsum > r) {
+            r = -log(random_uniform(x1, y1, z1, w1));
+            wsum = 0;
+            if (dwlo / (dwla + dwlo) > random_uniform(x1, y1, z1, w1)) {
+                ++n_opt; // наращиваем счетчик рассеяний на оптических
+                         // фононах
+                e -= beta_opt;
+            } else {
+                ++n_ac; // наращиваем счетчик рассеяний на акустических фононах
+            }
+            int count = 15;
             while (count) {
                 double theta =
                     2 * M_PI *
@@ -227,28 +230,8 @@ void job_kernel(const Point & init_condition, unsigned int seed, vec2 & current,
                 // если за 15 попыток не нашли решение, выходим из цикла
                 --count;
             }
-        } else if ((wlo > random_uniform(x1, y1, z1, w1)) &&
-                   (energy(p) >= beta_opt)) {
-            ++n_opt; // наращиваем счетчик рассеяний на оптических
-                     // фононах
-            wlo = 0;
-            e = energy(p) - beta_opt;
-            count = 15;
-
-            while (count) {
-                double theta = 2 * M_PI * random_uniform(x1, y1, z1,
-                                                         w1); // случайным
-                                                              // образом
-                // разыгрываем направление
-                auto ps = momentums_with_energy_in_direction(theta, e);
-                if (ps.size()) {
-                    p = ps[0];
-                    break;
-                }
-                --count;
-            }
+            t_num++;
         }
-        t_num++;
     }
     n0 = n_ac + n_opt;
     current = current / t;
@@ -291,7 +274,7 @@ Result result() {
 #pragma omp parallel for
     for (int j = 0; j < config::model.particles; j++) {
         job_kernel(init_condition[j], seed[j], current[j], tau[j], n_ac[j],
-                  n_opt[j]);
+                   n_opt[j]);
     };
 
     // Помещаем результат расчета для одной точки графика в структуру

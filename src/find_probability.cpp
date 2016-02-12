@@ -146,6 +146,10 @@ void set_probabilities() {
 double get_probability(double energy) {
     using config::probability;
     int i = 0, j = probability.energy_samples - 1;
+
+    if (energy < probability.energy[i] || energy > probability.energy[j])
+        return 0;
+
     while (j - i > 1) {
         int k = (i + j) / 2;
         if (probability.energy[k] < energy)

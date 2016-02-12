@@ -22,6 +22,6 @@ double mean(unsigned int * arr, int count);
 double sd(double * arr, int count);
 
 void job_kernel(const Point & init_condition, unsigned int seed, vec2 & current,
-               double & tau, unsigned int & n_ac, unsigned int & n_opt);
+                double & tau, unsigned int & n_ac, unsigned int & n_opt);
 
 Result result();
