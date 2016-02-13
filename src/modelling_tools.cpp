@@ -294,7 +294,8 @@ Result result() {
     delete[] seed;
     delete[] init_condition;
 
-    logger(LOG_OK,
-           "\t[DONE in " + to_string(time(nullptr) - time_load) + " sec]\n");
+    logger(LOG_OK, "\t[DONE in " +
+                       to_string((long long) time(nullptr) - time_load) +
+                       " sec]\n");
     return result;
 }
