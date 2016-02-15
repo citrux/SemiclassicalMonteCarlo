@@ -13,8 +13,8 @@ double vf = 1e6, hbar = 6.5e-16, d = 2e-8, eps0 = 0.059, eps1 = 0.029,
 */
 double energy(Point p) {
     double a = vf * hbar / eps0 / d;
-    return eps0 * (sqrt(1 + a * a * p.x * p.x) +
-                   g * (1 - cos(p.y)) / sqrt(1 + a * a * p.x * p.x));
+    double root = sqrt(1 + a * a * p.x * p.x);
+    return eps0 * (root + g * (1 - cos(p.y)) / root);
 }
 /*
     *
@@ -32,9 +32,12 @@ double energy_theta(double p, double theta) {
 */
 vec2 velocity(Point p) {
     double a = vf * hbar / eps0 / d;
-    return {vf * a * p.x / sqrt(1 + a * a * p.x * p.x) *
-                (1 - g * (1 - cos(p.y)) / (1 + a * a * p.y * p.y)),
-            g * d * eps0 / hbar / sqrt(1 + a * a * p.x * p.x) * sin(p.y)};
+    double b = 1 + a * a * p.x * p.x;
+    double root = sqrt(b);
+    double s, c;
+    sincos(p.y, &s, &c);
+    return {vf * a * p.x / root * (1 - g * (1 - c) / b),
+            g * d * eps0 / hbar / root * s};
 }
 
 /*
@@ -43,16 +46,22 @@ vec2 velocity(Point p) {
     *
 */
 vec2 forces(Point p, double t) {
-    double phi = config::fields.phi, phi1 = config::fields.phi1,
-           phi2 = config::fields.phi2;
-    double omega1 = config::fields.omega1, omega2 = config::fields.omega2;
-    vec2 E0 = config::fields.E0;
-    vec2 E1 = {config::fields.E1.x * cos(omega1 * t),
-               config::fields.E1.y * cos(omega1 * t + phi1)};
-    vec2 E2 = {config::fields.E2.x * cos(omega2 * t + phi),
-               config::fields.E2.y * cos(omega2 * t + phi + phi2)};
-    vec2 ov = {velocity(p).y, -velocity(p).x};
-    return E0 + E1 + E2 + config::fields.H * ov;
+    using namespace config;
+    vec2 force = fields.E0;
+    force += vec2(fields.E1.x == 0 ? 0 : fields.E1.x * cos(fields.omega1 * t),
+                  fields.E1.y == 0 ? 0 : fields.E1.y * cos(fields.omega1 * t +
+                                                           fields.phi1));
+    force += vec2(
+        fields.E2.x == 0 ? 0
+                         : fields.E2.x * cos(fields.omega2 * t + fields.phi),
+        fields.E2.y == 0 ? 0 : fields.E2.y * cos(fields.omega2 * t +
+                                                 fields.phi + fields.phi2));
+    if (fields.H != 0) {
+        vec2 v = velocity(p);
+        v = vec2(v.y, -v.x);
+        force += fields.H * v;
+    }
+    return force;
 }
 
 /*

@@ -150,15 +150,23 @@ double get_probability(double energy) {
     if (energy < probability.energy[i] || energy > probability.energy[j])
         return 0;
 
-    while (j - i > 1) {
-        int k = (i + j) / 2;
-        if (probability.energy[k] < energy)
-            i = k;
-        else
-            j = k;
-    }
-    double w = (energy - probability.energy[i]) /
-               (probability.energy[j] - probability.energy[i]);
+    // бисекция на произвольной сетке
+    // while (j - i > 1) {
+    //     int k = (i + j) / 2;
+    //     if (probability.energy[k] < energy)
+    //         i = k;
+    //     else
+    //         j = k;
+    // }
+    // double w = (energy - probability.energy[i]) /
+    //            (probability.energy[j] - probability.energy[i]);
+
+    // оптимизация для равномерной сетки
+    double step = probability.energy[1] - probability.energy[0];
+    double c = (energy - probability.energy[0]) / step;
+    i = floor(c);
+    j = i + 1;
+    double w = c - i;
 
     return (1 - w) * config::probability.probability[i] +
            w * config::probability.probability[j];
