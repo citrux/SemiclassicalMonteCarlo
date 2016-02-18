@@ -22,8 +22,8 @@ double random_uniform(unsigned int & x1, unsigned int & y1, unsigned int & z1,
 double * angle_int_distrib;
 
 double inverse_function_angle(double prob) {
-    int n = 1000;
-    int m = 500;
+    int n = 2000;
+    int m = 1000;
     if (angle_int_distrib == nullptr) {
         angle_int_distrib = new double[n + 1];
         angle_int_distrib[0] = 0;
@@ -37,11 +37,11 @@ double inverse_function_angle(double prob) {
 
             angle_int_distrib[i] = angle_int_distrib[i - 1] + momentum_int;
         }
-    }
 
-    // нормировка
-    for (int i = 1; i <= n; ++i) {
-        angle_int_distrib[i] /= angle_int_distrib[n];
+        // нормировка
+        for (int i = 1; i <= n; ++i) {
+            angle_int_distrib[i] /= angle_int_distrib[n];
+        }
     }
 
     // бинпоиск
@@ -151,19 +151,18 @@ double sd(double * arr, int count) {
         sum += pow((arr[i] - m), 2);
     }
 
-    return sqrt(sum / (count - 1));
+    return sqrt(sum) / count;
 }
 
 vec2 sd(vec2 * arr, int count) {
-    double sum1 = 0.0, sum2 = 0.0;
+    vec2 sum;
     vec2 m = mean(arr, count);
 
     for (int i = 0; i < count; i++) {
-        sum1 += pow((arr[i].x - m.x), 2);
-        sum2 += pow((arr[i].y - m.y), 2);
+        sum += (arr[i] - m) * (arr[i] - m);
     }
 
-    return {sqrt(sum1 / (count - 1)), sqrt(sum2 / (count - 1))};
+    return sqrt(sum) / count; // count >> 1 => count * (count - 1) -> count^2
 }
 
 void job_kernel(const Point & init_condition, unsigned int seed, vec2 & current,
@@ -183,8 +182,6 @@ void job_kernel(const Point & init_condition, unsigned int seed, vec2 & current,
     int n0 = 0;
     n_ac = 0, n_opt = 0;
 
-    double beta_opt = config::phonons.beta;
-
     int t_num = 0;
     double r = -log(random_uniform(x1, y1, z1, w1));
     while (t < config::model.all_time) {
@@ -200,7 +197,10 @@ void job_kernel(const Point & init_condition, unsigned int seed, vec2 & current,
         t += config::model.dt;
 
         double e = energy(p);
-        double dwlo = config::phonons.wlo_max * get_probability(e - beta_opt);
+        double dwlo =
+            config::phonons.wlo_max *
+            get_probability(e -
+                            config::phonons.beta); // 0, если выпал из минизоны
         double dwla = config::phonons.wla_max * get_probability(e);
         wsum += (dwla + dwlo) * config::model.dt;
 
@@ -210,7 +210,7 @@ void job_kernel(const Point & init_condition, unsigned int seed, vec2 & current,
             if (dwlo / (dwla + dwlo) > random_uniform(x1, y1, z1, w1)) {
                 ++n_opt; // наращиваем счетчик рассеяний на оптических
                          // фононах
-                e -= beta_opt;
+                e -= config::phonons.beta;
             } else {
                 ++n_ac; // наращиваем счетчик рассеяний на акустических фононах
             }

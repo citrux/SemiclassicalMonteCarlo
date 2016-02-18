@@ -42,6 +42,12 @@ void set_var(const string & varname, double value) {
         fields.E2.x = value;
     if (varname == "E2.y")
         fields.E2.y = value;
+    if (varname == "dt")
+        model.dt = value;
+    if (varname == "all_time")
+        model.all_time = value;
+    if (varname == "particles")
+        model.particles = value;
 }
 
 void load_config(const string & filename) {

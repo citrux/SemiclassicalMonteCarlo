@@ -46,6 +46,7 @@ inline vec2 & operator*=(vec2 & a, const vec2 & b) {
     return a;
 }
 
+inline vec2 operator*(vec2 a, const vec2 & b) { return a *= b; }
 inline vec2 operator*(vec2 v, double scale) { return v *= scale; }
 inline vec2 operator*(double scale, vec2 v) { return v *= scale; }
 
@@ -63,6 +64,8 @@ inline double cross(const vec2 & a, const vec2 & b) {
 inline double len(const vec2 & v) { return sqrt(dot(v, v)); }
 
 inline vec2 ort(const vec2 & v) { return v / len(v); }
+
+inline vec2 sqrt(const vec2 & v) { return {sqrt(v.x), sqrt(v.y)}; }
 
 inline vec2 operator-(const Point & end, const Point & start) {
     return {end.x - start.x, end.y - start.y};
@@ -84,3 +87,5 @@ inline Point operator+(Point start, const vec2 & shift) {
 inline Point operator-(Point start, const vec2 & shift) {
     return start += (-shift);
 }
+
+inline Point operator-(const Point & p) { return {-p.x, -p.y}; }
