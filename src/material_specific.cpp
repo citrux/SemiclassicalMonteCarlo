@@ -44,9 +44,7 @@ vec2 energy_gradient(Point p) {
     * Скорость
     *
 */
-vec2 velocity(Point p) {
-    return (d / hbar / c) * energy_gradient(p);
-}
+vec2 velocity(Point p) { return (d / hbar / c) * energy_gradient(p); }
 
 /*
     *
@@ -56,18 +54,13 @@ vec2 velocity(Point p) {
 vec2 forces(Point p, double t) {
     using namespace config;
     vec2 force = fields.E0;
-    force += vec2(fields.E1.x == 0 ? 0 : fields.E1.x * cos(fields.omega1 * t),
-                  fields.E1.y == 0 ? 0 : fields.E1.y * cos(fields.omega1 * t +
-                                                           fields.phi1));
-    force += vec2(
-        fields.E2.x == 0 ? 0
-                         : fields.E2.x * cos(fields.omega2 * t + fields.phi),
-        fields.E2.y == 0 ? 0 : fields.E2.y * cos(fields.omega2 * t +
-                                                 fields.phi + fields.phi2));
-    if (fields.H != 0) {
+    force += fields.E1 * cos(fields.omega1 * t);
+    force += fields.E2 * cos(fields.omega2 * t + fields.phi);
+    if (fields.B0 != 0 || fields.B1 != 0 || fields.B2 != 0) {
         vec2 v = velocity(p);
-        v = vec2(v.y, -v.x);
-        force += fields.H * v;
+        force += (fields.B0 + fields.B1 * cos(fields.omega1 * t) +
+                  fields.B2 * cos(fields.omega2 * t + fields.phi)) *
+                 vec2(v.y, -v.x);
     }
     return force;
 }

@@ -76,11 +76,11 @@ void load_config(const string & filename) {
     fields.E0 = to_vec2(reader.Get("fields", "E0", "0 0"));
     fields.E1 = to_vec2(reader.Get("fields", "E1", "0 0"));
     fields.E2 = to_vec2(reader.Get("fields", "E2", "0 0"));
-    fields.H = reader.GetReal("fields", "H", 0);
+    fields.B0 = reader.GetReal("fields", "B0", 0);
+    fields.B1 = reader.GetReal("fields", "B1", 0);
+    fields.B2 = reader.GetReal("fields", "B2", 0);
     fields.omega1 = reader.GetReal("fields", "omega1", 0);
     fields.omega2 = reader.GetReal("fields", "omega2", 0);
-    fields.phi1 = reader.GetReal("fields", "phi1", 0);
-    fields.phi2 = reader.GetReal("fields", "phi2", 0);
     fields.phi = reader.GetReal("fields", "phi", 0);
 
     bzone.A = to_point(reader.Get("bzone", "A", "0 0"));

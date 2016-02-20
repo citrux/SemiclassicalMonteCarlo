@@ -16,7 +16,7 @@ struct Phonons {
 struct Fields {
     vec2 E0, E1, E2;
 
-    double H, omega1, omega2, phi1, phi2, phi;
+    double B0, B1, B2, omega1, omega2, phi1, phi2, phi;
 };
 
 struct Bzone {
