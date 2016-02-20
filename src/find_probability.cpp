@@ -54,11 +54,11 @@ void get_energy_limits(double & emin, double & emax) {
 }
 
 Point point_on_contour(Point a, double nrg) {
-    vec2 dir = ort(velocity(a));
-    Point b = a - dir * (energy(a) - nrg) / dot(velocity(a), dir);
+    vec2 dir = ort(energy_gradient(a));
+    Point b = a - dir * (energy(a) - nrg) / dot(energy_gradient(a), dir);
     while (len(a - b) > config::probability.momentum_error) {
         a = b;
-        b = a - dir * (energy(a) - nrg) / dot(velocity(a), dir);
+        b = a - dir * (energy(a) - nrg) / dot(energy_gradient(a), dir);
     }
 
     return b;
@@ -69,8 +69,8 @@ double integrate(Point a, Point b, double nrg) {
     double l1 = len(c - a), l2 = len(b - c), l = l1 + l2;
     double wa = (1. / 3 - l2 / l1 / 6) * l, wc = l * l * l / 6 / l1 / l2,
            wb = (1. / 3 - l1 / l2 / 6) * l;
-    return wa / len(velocity(a)) + wb / len(velocity(b)) +
-           wc / len(velocity(c));
+    return wa / len(energy_gradient(a)) + wb / len(energy_gradient(b)) +
+           wc / len(energy_gradient(c));
 }
 
 void calculate_probability(double * output) {

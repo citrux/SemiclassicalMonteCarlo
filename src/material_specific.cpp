@@ -4,7 +4,7 @@
 #include "logger.h"
 using namespace std;
 double vf = 1e6, hbar = 6.5e-16, d = 2e-8, eps0 = 0.059, eps1 = 0.029,
-       g = pow(eps1 / eps0, 2);
+       g = pow(eps1 / eps0, 2), c = 3e8;
 
 /*
     *
@@ -27,17 +27,25 @@ double energy_theta(double p, double theta) {
 
 /*
     *
-    * Компоненты скорости
+    * Градиент энергии в импульсном пространстве
     *
 */
-vec2 velocity(Point p) {
+vec2 energy_gradient(Point p) {
     double a = vf * hbar / eps0 / d;
     double b = 1 + a * a * p.x * p.x;
     double root = sqrt(b);
     double s, c;
     sincos(p.y, &s, &c);
-    return {vf * a * p.x / root * (1 - g * (1 - c) / b),
-            g * d * eps0 / hbar / root * s};
+    return {eps0 * a * a * p.x / root * (1 - g * (1 - c) / b),
+            g * eps0 / root * s};
+}
+/*
+    *
+    * Скорость
+    *
+*/
+vec2 velocity(Point p) {
+    return (d / hbar / c) * energy_gradient(p);
 }
 
 /*

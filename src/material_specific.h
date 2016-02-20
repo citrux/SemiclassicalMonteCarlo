@@ -18,6 +18,7 @@ double energy(Point p);
 */
 double energy_theta(double p, double theta);
 
+vec2 energy_gradient(Point p);
 /*
     *
     * Компоненты скорости
