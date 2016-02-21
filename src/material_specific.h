@@ -10,7 +10,7 @@ using std::string;
     * Выражение для энергетического спектра (в декартовых координатах)
     *
 */
-double energy(Point p);
+double energy(const Point & p);
 /*
     *
     * Выражение для энергетического спектра (в полярных координатах)
@@ -18,20 +18,20 @@ double energy(Point p);
 */
 double energy_theta(double p, double theta);
 
-vec2 energy_gradient(Point p);
+vec2 energy_gradient(const Point & p);
 /*
     *
     * Компоненты скорости
     *
 */
-vec2 velocity(Point p);
+vec2 velocity(const Point & p);
 
 /*
     *
     * Правые части уравнений движения
     *
 */
-vec2 forces(Point p, double t);
+vec2 forces(const Point & p, double t);
 
 /*
     *
@@ -45,11 +45,4 @@ double pmax(double theta);
     * Функция, приводящая квазиимпульс к первой зоне Бриллюэна
     *
 */
-Point to_first_bz(Point p);
-
-/*
-    *
-    * Возвращает точку с индексами (k,m)
-    *
-*/
-Point point_k_m(int k, int m);
+Point to_first_bz(const Point & p);

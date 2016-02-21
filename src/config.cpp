@@ -42,6 +42,14 @@ void set_var(const string & varname, double value) {
         fields.E2.x = value;
     if (varname == "E2.y")
         fields.E2.y = value;
+    if (varname == "B0")
+        fields.B0 = value;
+    if (varname == "B1")
+        fields.B1 = value;
+    if (varname == "B2")
+        fields.B2 = value;
+    if (varname == "phi")
+        fields.phi = value;
     if (varname == "dt")
         model.dt = value;
     if (varname == "all_time")

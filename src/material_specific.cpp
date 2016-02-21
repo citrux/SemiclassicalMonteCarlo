@@ -12,7 +12,7 @@ const double vf = 1e6, hbar = 6.5e-16, d = 2e-8, eps0 = 0.059, eps1 = 0.029,
     * Выражение для энергетического спектра (в декартовых координатах)
     *
 */
-double energy(Point p) {
+double energy(const Point & p) {
     double a = vf * hbar / eps0 / d;
     double root = sqrt(1 + a * a * p.x * p.x);
     return eps0 * (root + g * (1 - cos(p.y)) / root);
@@ -31,7 +31,7 @@ double energy_theta(double p, double theta) {
     * Градиент энергии в импульсном пространстве
     *
 */
-vec2 energy_gradient(Point p) {
+vec2 energy_gradient(const Point & p) {
     double a = vf * hbar / eps0 / d;
     double b = 1 + a * a * p.x * p.x;
     double root = sqrt(b);
@@ -45,14 +45,14 @@ vec2 energy_gradient(Point p) {
     * Скорость
     *
 */
-vec2 velocity(Point p) { return (d / hbar / c) * energy_gradient(p); }
+vec2 velocity(const Point & p) { return (d / hbar / c) * energy_gradient(p); }
 
 /*
     *
     * Правые части уравнений движения
     *
 */
-vec2 forces(Point p, double t) {
+vec2 forces(const Point & p, double t) {
     using namespace config;
     vec2 force = fields.E0;
     force += fields.E1 * cos(fields.omega1 * t);
@@ -103,7 +103,7 @@ double pmax(double theta) {
     * Функция, приводящая квазиимпульс к первой зоне Бриллюэна
     *
 */
-Point to_first_bz(Point p) {
+Point to_first_bz(const Point & p) {
 
     vec2 pv = p - config::bzone.A;
 
