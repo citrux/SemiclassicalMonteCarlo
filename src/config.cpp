@@ -101,11 +101,11 @@ void load_config(const string & filename) {
     bzone.dual_basis[1] = v / dot(v, bzone.basis[1]);
 
     probability.momentum_samples =
-        reader.GetReal("probability", "momentum_samples", 0);
+        reader.GetInteger("probability", "momentum_samples", 0);
     probability.momentum_error =
         reader.GetReal("probability", "momentum_error", 0);
     probability.probability_error =
-        reader.GetInteger("probability", "probability_error", 0);
+        reader.GetReal("probability", "probability_error", 0);
     probability.energy_samples =
         reader.GetInteger("probability", "energy_samples", 0);
     probability.probability = new double[probability.energy_samples];

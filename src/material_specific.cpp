@@ -3,8 +3,9 @@
 #include "config.h"
 #include "logger.h"
 using namespace std;
-double vf = 1e6, hbar = 6.5e-16, d = 2e-8, eps0 = 0.059, eps1 = 0.029,
-       g = pow(eps1 / eps0, 2), c = 3e8;
+
+const double vf = 1e6, hbar = 6.5e-16, d = 2e-8, eps0 = 0.059, eps1 = 0.029,
+             g = pow(eps1 / eps0, 2), c = 3e8;
 
 /*
     *

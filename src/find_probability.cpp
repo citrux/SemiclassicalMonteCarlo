@@ -64,15 +64,6 @@ Point point_on_contour(Point a, double nrg) {
     return b;
 }
 
-double integrate(Point a, Point b, double nrg) {
-    Point c = point_on_contour(a + (b - a) / 2, nrg);
-    double l1 = len(c - a), l2 = len(b - c), l = l1 + l2;
-    double wa = (1. / 3 - l2 / l1 / 6) * l, wc = l * l * l / 6 / l1 / l2,
-           wb = (1. / 3 - l1 / l2 / 6) * l;
-    return wa / len(energy_gradient(a)) + wb / len(energy_gradient(b)) +
-           wc / len(energy_gradient(c));
-}
-
 void calculate_probability(double * output) {
     double e_min, e_max;
     get_energy_limits(e_min, e_max);
@@ -88,44 +79,27 @@ void calculate_probability(double * output) {
         output[i] = 1;
         int n = 500;
         int count = 12;
-        while (fabs(output[i] - output_old) / output_old > 1e-5 && count) {
+        while (fabs(output[i] - output_old) / output_old >
+                   config::probability.probability_error &&
+               count) {
             double dtheta = 2 * M_PI / n;
             output_old = output[i];
             output[i] = 0;
-            // logger(LOG_INFO, to_string(e) + " " +to_string(n) + " " +
-            // to_string(output_old) + "\n");
+
             for (double theta = 0; theta < 2 * M_PI; theta += dtheta) {
-                // logger(LOG_INFO, to_string(1.0 * j /
-                // config::output.n_integral) + "\n");
+
                 curr = momentums_with_energy_in_direction(theta, e);
 
-                if (theta > 0) {
-                    for (size_t k = curr.size(); k < prev.size(); ++k) {
-                        vec2 dir = {cos(theta - dtheta), sin(theta - dtheta)};
-                        Point end = pmax(theta - dtheta) * dir;
-                        output[i] += integrate(prev[k], end, e);
-                    }
-
-                    for (size_t k = prev.size(); k < curr.size(); ++k) {
-                        vec2 dir = {cos(theta), sin(theta)};
-                        Point start = pmax(theta) * dir;
-                        output[i] += integrate(start, curr[k], e);
-                    }
-
-                    if (prev.size() == curr.size()) {
-                        for (size_t k = 0; k < curr.size(); ++k)
-                            output[i] += integrate(prev[k], curr[k], e);
-                    }
-                }
+                for (size_t k = 0; k < min(prev.size(), curr.size()); ++k)
+                    output[i] +=
+                        len(prev[k] - curr[k]) / len(energy_gradient(curr[k]));
 
                 swap(prev, curr);
             }
             n *= 2;
             --count;
         }
-        // logger(LOG_INFO, "epoint" +to_string(i) +"complete\n");
     }
-    // logger(LOG_INFO, "calc finished\n");
 }
 
 void set_probabilities() {
