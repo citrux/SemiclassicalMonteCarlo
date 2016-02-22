@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <sstream>
+#include <iomanip>
 #include "config.h"
 #include "logger.h"
 #include "ini.h"
@@ -130,4 +131,13 @@ void load_config(const string & filename) {
     plot.var = reader.Get("plot", "var", "");
 
     logger(LOG_OK, "[DONE]\n");
+}
+
+std::ostream & operator<<(std::ostream & os, const Fields & f) {
+    using namespace std;
+    os << scientific << setw(15) << f.E0.x << setw(15) << f.E0.y << setw(15)
+       << f.E1.x << setw(15) << f.E1.y << setw(15) << f.E2.x << setw(15)
+       << f.E2.y << setw(15) << f.B0 << setw(15) << f.B1 << setw(15) << f.B2
+       << setw(15) << f.omega1 << setw(15) << f.omega2 << setw(15) << f.phi;
+    return os;
 }

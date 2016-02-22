@@ -1,11 +1,15 @@
 #include <climits>
 #include <cstdio>
+#include <string>
+#include <ostream>
+#include <sstream>
+#include <iomanip>
 #include "text_files.h"
 #include "linalg.h"
 #include "config.h"
 
 struct Result {
-    vec2 current_mean;
+    vec2 current;
     vec2 current_std;
     double tau;
     double n_opt;
@@ -25,3 +29,5 @@ void job_kernel(const Point & init_condition, unsigned int seed, vec2 & current,
                 double & tau, unsigned int & n_ac, unsigned int & n_opt);
 
 Result result();
+std::ostream & operator<<(std::ostream & os, const Result & res);
+std::string to_string(const Result & res);

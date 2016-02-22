@@ -66,3 +66,5 @@ extern Model model;
 
 void load_config(const std::string & filename);
 void set_var(const std::string & varname, double value);
+
+std::ostream & operator<<(std::ostream & os, const Fields & f);

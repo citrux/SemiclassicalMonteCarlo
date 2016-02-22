@@ -279,7 +279,7 @@ Result result() {
 
     // Помещаем результат расчета для одной точки графика в структуру
     Result result;
-    result.current_mean = mean(current, config::model.particles);
+    result.current = mean(current, config::model.particles);
     result.current_std = sd(current, config::model.particles);
     result.tau = mean(tau, config::model.particles);
     result.n_opt = mean(n_opt, config::model.particles);
@@ -298,4 +298,19 @@ Result result() {
                        to_string((long long) time(nullptr) - time_load) +
                        " sec]\n");
     return result;
+}
+
+std::ostream & operator<<(std::ostream & os, const Result & res) {
+    using namespace std;
+    os << scientific << setw(15) << res.current.x << setw(15)
+       << res.current_std.x << setw(15) << res.current.y << setw(15)
+       << res.current_std.y << fixed << setw(15) << res.n_opt << setw(15)
+       << res.n_ac << scientific << setw(15) << res.tau;
+    return os;
+}
+
+std::string to_string(const Result & res) {
+    std::stringstream ss;
+    ss << res;
+    return ss.str();
 }
